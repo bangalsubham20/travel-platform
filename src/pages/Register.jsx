@@ -1,376 +1,235 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
-import { FiMail, FiLock, FiUser, FiPhone, FiEye, FiEyeOff, FiCheck } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiMail, FiLock, FiUser, FiPhone, FiCheck, FiEye, FiEyeOff } from 'react-icons/fi';
 
-function Register() {
-  const [formData, setFormData] = useState({
+export default function Register() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
     fullName: '',
     email: '',
     phone: '',
     password: '',
-    confirmPassword: '',
-    agreeTerms: false
+    confirm: '',
+    agree: false
   });
-
-  const [errors, setErrors] = useState({});
+  const [showPw, setShowPw] = useState(false);
+  const [showConf, setShowConf] = useState(false);
+  const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
-  const { register } = useAuth();
-  const navigate = useNavigate();
+  function validate() {
+    if (!form.fullName.trim()) return 'Name required';
+    if (!/^[A-Za-z ]{3,}$/.test(form.fullName)) return 'Name must be at least 3 letters';
+    if (!/^[\w-.]+@[\w-]+\.\w{2,}$/.test(form.email)) return 'Valid email required';
+    if (!/^\d{10}$/.test(form.phone)) return 'Valid 10-digit phone required';
+    if (form.password.length < 6) return 'Password at least 6 chars';
+    if (!/[A-Z]/.test(form.password)) return 'Password: one uppercase required';
+    if (!/[a-z]/.test(form.password)) return 'Password: one lowercase required';
+    if (!/\d/.test(form.password)) return 'Password: one number required';
+    if (form.password !== form.confirm) return 'Passwords do not match';
+    if (!form.agree) return 'You must agree to terms';
+    return null;
+  }
 
-  // Validation rules
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Full Name validation
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (formData.fullName.trim().length < 3) {
-      newErrors.fullName = 'Full name must be at least 3 characters';
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Phone validation
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!formData.phone) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Please enter a valid 10-digit phone number';
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    } else if (!/(?=.*[a-z])/.test(formData.password)) {
-      newErrors.password = 'Password must contain lowercase letters';
-    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase letters';
-    } else if (!/(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain numbers';
-    }
-
-    // Confirm Password validation
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    // Terms validation
-    if (!formData.agreeTerms) {
-      newErrors.agreeTerms = 'You must agree to terms and conditions';
-    }
-
-    return newErrors;
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    setError('');
+    const err = validate();
+    if (err) {
+      setError(err);
       return;
     }
-
     setLoading(true);
     try {
-      await register(formData.fullName, formData.email, formData.password, formData.phone);
-      setRegistrationSuccess(true);
-      
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+      await register(form.fullName, form.email, form.password, form.phone);
+      setSubmitted(true);
+      setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      setErrors({ submit: err.message || 'Registration failed. Please try again.' });
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
-  };
-
-  if (registrationSuccess) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
-        <Card className="max-w-md w-full p-12 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-              <FiCheck size={32} className="text-white" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Account Created!</h1>
-          <p className="text-gray-600 mb-6">Welcome to WravelCommunity! Your account has been successfully created.</p>
-          <p className="text-sm text-gray-500">Redirecting to home page...</p>
-        </Card>
-      </div>
-    );
   }
 
-  const passwordStrength = () => {
-    let strength = 0;
-    if (formData.password.length >= 6) strength++;
-    if (/(?=.*[a-z])/.test(formData.password)) strength++;
-    if (/(?=.*[A-Z])/.test(formData.password)) strength++;
-    if (/(?=.*\d)/.test(formData.password)) strength++;
-    
-    return strength;
-  };
-
-  const getPasswordStrengthColor = () => {
-    const strength = passwordStrength();
-    if (strength === 0) return 'bg-gray-200';
-    if (strength === 1) return 'bg-red-400';
-    if (strength === 2) return 'bg-yellow-400';
-    if (strength === 3) return 'bg-orange-400';
-    return 'bg-green-400';
-  };
+  if (submitted) return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-green-400/60 via-blue-400/60 to-fuchsia-400/60">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 40 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-white/70 shadow-2xl rounded-3xl p-12 backdrop-blur-lg border border-white border-opacity-30 flex flex-col items-center text-center"
+      >
+        <div className="w-16 h-16 flex items-center justify-center rounded-full bg-green-500 mb-4">
+          <FiCheck size={36} className="text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Account Created!</h2>
+        <p className="text-gray-600 mb-6">Welcome to WravelCommunity.</p>
+        <p className="text-sm text-gray-400">Redirecting...</p>
+      </motion.div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
-      <div className="max-w-md mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-2">✈️</div>
-          <h1 className="text-3xl font-bold text-gray-800">Join WravelCommunity</h1>
-          <p className="text-gray-600 mt-2">Create your account and start exploring amazing trips!</p>
-        </div>
-
-        <Card className="p-8">
-          {/* Error Message */}
-          {errors.submit && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-              {errors.submit}
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-400/60 via-indigo-600/60 to-fuchsia-400/60 relative overflow-hidden">
+      {/* Animated Circles */}
+      <motion.div
+        animate={{ x: [0, 80, 0], y: [0, 60, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400/30 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{ x: [0, -120, 0], y: [0, -50, 0] }}
+        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -bottom-24 -right-32 w-96 h-96 bg-fuchsia-400/30 rounded-full blur-3xl"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="w-full max-w-md bg-white/60 shadow-2xl rounded-3xl p-8 md:p-12 backdrop-blur-2xl border border-white border-opacity-40"
+      >
+        <h2 className="text-4xl font-bold text-center mb-8 text-gray-900 drop-shadow">Create Account</h2>
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              key="register-error"
+              exit={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm"
+            >
+              {error}
+            </motion.div>
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <div className="relative">
-                <FiUser className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 ${
-                    errors.fullName ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="John Doe"
-                />
-              </div>
-              {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <div className="relative">
-                <FiMail className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="you@example.com"
-                />
-              </div>
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Phone Number *
-              </label>
-              <div className="relative">
-                <FiPhone className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="9876543210"
-                />
-              </div>
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password *
-              </label>
-              <div className="relative">
-                <FiLock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                </button>
-              </div>
-
-              {/* Password Strength Indicator */}
-              {formData.password && (
-                <div className="mt-2">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-gray-600">Password Strength:</span>
-                    <span className="text-xs font-semibold text-gray-600">
-                      {passwordStrength() === 0 && 'Weak'}
-                      {passwordStrength() === 1 && 'Weak'}
-                      {passwordStrength() === 2 && 'Fair'}
-                      {passwordStrength() === 3 && 'Good'}
-                      {passwordStrength() === 4 && 'Strong'}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all ${getPasswordStrengthColor()}`}
-                      style={{ width: `${(passwordStrength() / 4) * 100}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Must contain: uppercase, lowercase, numbers, and be at least 6 characters
-                  </p>
-                </div>
-              )}
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Confirm Password *
-              </label>
-              <div className="relative">
-                <FiLock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                </button>
-              </div>
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-            </div>
-
-            {/* Terms and Conditions */}
-            <div className="flex items-start">
+        </AnimatePresence>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Full Name</label>
+            <div className="relative">
+              <FiUser className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
-                type="checkbox"
-                name="agreeTerms"
-                checked={formData.agreeTerms}
-                onChange={handleInputChange}
-                className="mt-1 mr-3 w-4 h-4 accent-orange-500"
+                className="w-full pl-10 pr-4 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all"
+                placeholder="John Doe"
+                name="fullName"
+                value={form.fullName}
+                onChange={e => setForm({ ...form, fullName: e.target.value })}
+                autoFocus required
               />
-              <label className="text-sm text-gray-600">
-                I agree to the{' '}
-                <a href="#" className="text-orange-500 hover:underline font-semibold">
-                  Terms & Conditions
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-orange-500 hover:underline font-semibold">
-                  Privacy Policy
-                </a>
-                *
-              </label>
             </div>
-            {errors.agreeTerms && <p className="text-red-500 text-xs">{errors.agreeTerms}</p>}
-
-            {/* Submit Button */}
-            <Button fullWidth disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </Button>
-          </form>
-
-          {/* Login Link */}
-          <p className="text-center text-gray-600 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-orange-500 hover:text-orange-600 font-semibold">
-              Login here
-            </Link>
-          </p>
-        </Card>
-
-        {/* Trust Badges */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center text-sm">
-          <div className="text-gray-600">
-            <p className="text-2xl mb-1">🔒</p>
-            <p className="font-semibold text-xs">Secure</p>
           </div>
-          <div className="text-gray-600">
-            <p className="text-2xl mb-1">✓</p>
-            <p className="font-semibold text-xs">Verified</p>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Email</label>
+            <div className="relative">
+              <FiMail className="absolute left-3 top-3 text-gray-400" size={20} />
+              <input
+                className="w-full pl-10 pr-4 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all"
+                placeholder="you@email.com"
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={e => setForm({ ...form, email: e.target.value })}
+                required
+              />
+            </div>
           </div>
-          <div className="text-gray-600">
-            <p className="text-2xl mb-1">⚡</p>
-            <p className="font-semibold text-xs">Instant</p>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Phone</label>
+            <div className="relative">
+              <FiPhone className="absolute left-3 top-3 text-gray-400" size={20} />
+              <input
+                className="w-full pl-10 pr-4 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all"
+                placeholder="1234567890"
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={e => setForm({ ...form, phone: e.target.value })}
+                required
+              />
+            </div>
           </div>
-        </div>
-      </div>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Password</label>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-gray-400" size={20} />
+              <input
+                className="w-full pl-10 pr-10 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all"
+                placeholder="••••••••"
+                type={showPw ? 'text' : 'password'}
+                name="password"
+                value={form.password}
+                autoComplete="new-password"
+                onChange={e => setForm({ ...form, password: e.target.value })}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-3 text-gray-400 focus:outline-none"
+                tabIndex={-1}
+                onClick={() => setShowPw(v => !v)}
+              >
+                {showPw ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Confirm Password</label>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-gray-400" size={20} />
+              <input
+                className="w-full pl-10 pr-10 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all"
+                placeholder="••••••••"
+                type={showConf ? 'text' : 'password'}
+                name="confirm"
+                value={form.confirm}
+                onChange={e => setForm({ ...form, confirm: e.target.value })}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-3 text-gray-400 focus:outline-none"
+                tabIndex={-1}
+                onClick={() => setShowConf(v => !v)}
+              >
+                {showConf ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              checked={form.agree}
+              id="terms"
+              type="checkbox"
+              className="rounded accent-fuchsia-500 focus:ring-fuchsia-500"
+              onChange={e => setForm({ ...form, agree: e.target.checked })}
+            />
+            <label htmlFor="terms" className="text-gray-600 text-sm">
+              I agree to&nbsp;
+              <a href="#" className="text-fuchsia-500 underline">terms & privacy</a>
+            </label>
+          </div>
+          <button
+            className="w-full h-12 mt-2 rounded-lg bg-gradient-to-tr from-blue-500 via-indigo-500 to-fuchsia-500 text-white font-bold text-lg shadow-lg hover:scale-[1.03] transition-transform"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Creating...' : 'Create Account'}
+          </button>
+        </form>
+        <p className="text-center text-gray-600 mt-6">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="text-fuchsia-600 font-bold hover:underline"
+          >
+            Log In
+          </Link>
+        </p>
+      </motion.div>
     </div>
   );
 }
-
-export default Register;

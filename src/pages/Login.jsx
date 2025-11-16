@@ -1,88 +1,124 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 
-function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
-      await login(email, password);
+      await login(form.email, form.password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <div className="p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Welcome Back</h1>
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-400/60 via-indigo-600/60 to-fuchsia-400/60 relative overflow-hidden">
+      {/* Animated Circles */}
+      <motion.div
+        animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[-80px] left-[-80px] w-96 h-96 bg-fuchsia-400/30 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{ x: [0, -100, 0], y: [0, -80, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[-80px] right-[-80px] w-96 h-96 bg-blue-400/30 rounded-full blur-3xl"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="w-full max-w-md bg-white/50 shadow-2xl rounded-3xl p-8 md:p-12 backdrop-blur-xl border border-white border-opacity-30"
+      >
+        <h2 className="text-4xl font-bold text-center mb-8 text-gray-800 drop-shadow">Welcome Back</h2>
+        <AnimatePresence>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <motion.div
+              key="login-error"
+              exit={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
-              </label>
+        </AnimatePresence>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Email</label>
+            <div className="relative">
+              <FiMail className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
+                className="w-full px-10 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all"
+                placeholder="you@email.com"
+                autoFocus
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                placeholder="you@example.com"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
                 required
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
+          </div>
+          <div>
+            <label className="block mb-1 text-gray-700 font-semibold">Password</label>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                className="w-full px-10 py-2 bg-white/80 border border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none shadow-sm transition-all pr-12"
                 placeholder="••••••••"
                 required
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
               />
+              <button
+                type="button"
+                className="absolute right-3 top-3 text-gray-400 focus:outline-none"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              </button>
             </div>
-
-            <Button fullWidth disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
-            </Button>
-          </form>
-
-          <p className="text-center text-gray-600 mt-4">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-orange-500 hover:text-orange-600 font-semibold">
-              Sign up
-            </Link>
-          </p>
-        </div>
-      </Card>
+          </div>
+          <button
+            type="submit"
+            className="w-full h-12 mt-4 rounded-lg bg-gradient-to-tr from-blue-500 via-indigo-500 to-fuchsia-500 text-white font-bold text-lg shadow-lg hover:scale-[1.03] transition-transform"
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+        <p className="text-center text-gray-600 mt-6">
+          Don't have an account?{' '}
+          <Link
+            to="/register"
+            className="text-fuchsia-600 font-bold hover:underline"
+          >
+            Sign Up
+          </Link>
+        </p>
+      </motion.div>
     </div>
   );
 }
-
-export default Login;
