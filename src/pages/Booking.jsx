@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { FiUser, FiCheck, FiX } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiUser, FiCheck, FiX, FiArrowRight, FiLock } from 'react-icons/fi';
 import bookingService from '../services/bookingService';
 import tripService from '../services/tripService';
 
@@ -13,7 +14,6 @@ function Booking() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // State management
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [tripLoading, setTripLoading] = useState(true);
@@ -39,7 +39,6 @@ function Booking() {
     termsAccepted: false,
   });
 
-  // Mock trip data as fallback
   const mockTrips = {
     1: {
       id: 1,
@@ -61,19 +60,14 @@ function Booking() {
     }
   };
 
-  // Fetch trip on mount
   useEffect(() => {
     const fetchTrip = async () => {
       try {
         setTripLoading(true);
         setError(null);
-
-        // Try to fetch from backend
         const tripData = await tripService.getTripById(tripId);
         setTrip(tripData);
       } catch (err) {
-        console.warn('Backend unavailable, using mock data:', err);
-        // Use mock data as fallback
         const mockTrip = mockTrips[tripId];
         if (mockTrip) {
           setTrip(mockTrip);
@@ -84,13 +78,9 @@ function Booking() {
         setTripLoading(false);
       }
     };
-
-    if (tripId) {
-      fetchTrip();
-    }
+    if (tripId) fetchTrip();
   }, [tripId]);
 
-  // Add traveler
   const addTraveler = () => {
     if (formData.travelers.length < 10) {
       const newTraveler = {
@@ -111,7 +101,6 @@ function Booking() {
     }
   };
 
-  // Remove traveler
   const removeTraveler = (id) => {
     if (formData.travelers.length > 1) {
       setFormData(prev => ({
@@ -122,7 +111,6 @@ function Booking() {
     }
   };
 
-  // Update traveler info
   const updateTraveler = (id, field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -132,37 +120,25 @@ function Booking() {
     }));
   };
 
-  // Validate step 1
   const validateStep1 = () => {
     const newErrors = {};
     formData.travelers.forEach((traveler, index) => {
-      if (!traveler.fullName.trim()) {
-        newErrors[`traveler${index}Name`] = 'Full name is required';
-      }
-      if (!traveler.age) {
-        newErrors[`traveler${index}Age`] = 'Age is required';
-      }
-      if (!traveler.phone.trim()) {
-        newErrors[`traveler${index}Phone`] = 'Phone number is required';
-      }
-      if (!traveler.email.trim()) {
-        newErrors[`traveler${index}Email`] = 'Email is required';
-      }
+      if (!traveler.fullName.trim()) newErrors[`traveler${index}Name`] = 'Full name required';
+      if (!traveler.age) newErrors[`traveler${index}Age`] = 'Age required';
+      if (!traveler.phone.trim()) newErrors[`traveler${index}Phone`] = 'Phone required';
+      if (!traveler.email.trim()) newErrors[`traveler${index}Email`] = 'Email required';
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle step navigation
   const handleNext = () => {
     if (step === 1) {
-      if (!validateStep1()) {
-        return;
-      }
+      if (!validateStep1()) return;
       setStep(2);
     } else if (step === 2) {
       if (!formData.termsAccepted) {
-        setErrors({ terms: 'Please accept terms and conditions' });
+        setErrors({ terms: 'Please accept terms' });
         return;
       }
       setErrors({});
@@ -177,12 +153,9 @@ function Booking() {
     }
   };
 
-  // Submit booking
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErrors({});
-
     try {
       const bookingData = {
         tripId: parseInt(tripId),
@@ -192,18 +165,14 @@ function Booking() {
         paymentMethod: formData.paymentMethod,
         termsAccepted: formData.termsAccepted,
       };
-
-      // Try to create booking via API
       const booking = await bookingService.createBooking(bookingData);
       navigate(`/booking-confirmation/${booking.id}`);
     } catch (err) {
-      console.error('Booking error:', err);
-      setErrors({ submit: err.message || 'Booking failed. Please try again.' });
+      setErrors({ submit: err.message || 'Booking failed' });
       setLoading(false);
     }
   };
 
-  // Calculate totals
   const calculateSubtotal = () => trip ? trip.price * formData.numTravelers : 0;
   const calculateServiceFee = () => 500;
   const calculateGST = () => Math.round(calculateSubtotal() * 0.05);
@@ -214,469 +183,431 @@ function Booking() {
   const gst = calculateGST();
   const total = calculateTotal();
 
-  // Loading state
   if (tripLoading) return <LoadingSpinner />;
 
-  // Not logged in state
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <Card className="max-w-md w-full p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Login Required</h2>
-          <p className="text-gray-600 mb-6">You need to login to book a trip.</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+        >
+          <h2 className="text-2xl font-bold text-white mb-4">Login Required</h2>
+          <p className="text-slate-300 mb-6">You need to login to book a trip.</p>
           <Button fullWidth onClick={() => navigate('/login')}>Go to Login</Button>
-        </Card>
+        </motion.div>
       </div>
     );
   }
 
-  // Trip not found state
   if (error || !trip) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <Card className="max-w-md w-full p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Trip Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'The trip you are trying to book does not exist.'}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+        >
+          <h2 className="text-2xl font-bold text-white mb-4">Trip Not Found</h2>
+          <p className="text-slate-300 mb-6">{error || 'The trip does not exist.'}</p>
           <Button fullWidth onClick={() => navigate('/trips')}>Browse Trips</Button>
-        </Card>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Book Your Trip</h1>
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white pb-16 overflow-hidden">
+      {/* Animated Background */}
+      <motion.div className="fixed -top-96 -right-96 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-purple-600/20 via-indigo-600/15 to-transparent blur-3xl -z-10"
+        animate={{ y: [0, 60, 0] }}
+        transition={{ duration: 12, repeat: Infinity }} />
+      <motion.div className="fixed -bottom-96 -left-96 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-blue-600/20 via-cyan-500/15 to-transparent blur-3xl -z-10"
+        animate={{ y: [0, -50, 0] }}
+        transition={{ duration: 15, repeat: Infinity }} />
 
-        {/* Error notification */}
-        {errors.submit && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {errors.submit}
-          </div>
-        )}
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pt-12 mb-8"
+        >
+          <p className="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 uppercase tracking-widest mb-2">
+            🎫 Secure Booking
+          </p>
+          <h1 className="text-5xl font-black text-white">Complete Your Booking</h1>
+        </motion.div>
+
+        {/* Error Message */}
+        <AnimatePresence>
+          {errors.submit && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-6 backdrop-blur-xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-4 rounded-xl"
+            >
+              {errors.submit}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Step Indicator */}
-            <div className="mb-8 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                  step >= 1 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {step > 1 ? <FiCheck size={20} /> : '1'}
-                </div>
-                <span className="ml-3 font-semibold text-gray-800">Travelers</span>
-              </div>
-
-              <div className={`flex-1 h-1 mx-4 ${step >= 2 ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-
-              <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                  step >= 2 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {step > 2 ? <FiCheck size={20} /> : '2'}
-                </div>
-                <span className="ml-3 font-semibold text-gray-800">Details</span>
-              </div>
-
-              <div className={`flex-1 h-1 mx-4 ${step >= 3 ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-
-              <div className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                  step >= 3 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  3
-                </div>
-                <span className="ml-3 font-semibold text-gray-800">Payment</span>
-              </div>
-            </div>
-
-            {/* Step 1: Travelers */}
-            {step === 1 && (
-              <Card className="p-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Add Travelers</h2>
-
-                <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Number of Travelers
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={formData.numTravelers}
-                      disabled
-                      className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 w-20 cursor-not-allowed"
-                    />
-                    <span className="text-gray-600">travelers</span>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-10 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between">
+                {[1, 2, 3].map((stepNum, idx) => (
+                  <div key={stepNum} className="flex items-center flex-1">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
+                        step >= stepNum
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                          : 'bg-white/10 text-slate-400'
+                      }`}
+                    >
+                      {step > stepNum ? <FiCheck size={24} /> : stepNum}
+                    </motion.div>
+                    {idx < 2 && (
+                      <motion.div
+                        className={`flex-1 h-1 mx-4 ${step > stepNum ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-white/10'}`}
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: step > stepNum ? 1 : 0 }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Use Add/Remove buttons below to change count</p>
-                </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs font-semibold mt-4 text-slate-400">
+                <span>Travelers</span>
+                <span>Review</span>
+                <span>Payment</span>
+              </div>
+            </motion.div>
 
-                <div className="space-y-8 mb-8 pb-8 border-b">
+            {/* Step 1 */}
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl space-y-6"
+                >
+                  <h2 className="text-3xl font-black text-white">Add Travelers</h2>
+
                   {formData.travelers.map((traveler, index) => (
-                    <Card key={traveler.id} className="p-6 border-l-4 border-orange-500 bg-gray-50">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-800">Traveler {index + 1}</h3>
+                    <motion.div
+                      key={traveler.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/8 transition-all"
+                    >
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-bold text-white">Traveler {index + 1}</h3>
                         {formData.travelers.length > 1 && (
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
                             onClick={() => removeTraveler(traveler.id)}
-                            className="text-red-500 hover:text-red-700 transition"
+                            className="text-red-400 hover:text-red-300 transition"
                           >
                             <FiX size={20} />
-                          </button>
+                          </motion.button>
                         )}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Full Name *
-                          </label>
+                          <label className="text-sm font-semibold text-slate-300 mb-2 block">Full Name *</label>
                           <input
                             type="text"
                             value={traveler.fullName}
                             onChange={(e) => updateTraveler(traveler.id, 'fullName', e.target.value)}
-                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-orange-500 ${
-                              errors[`traveler${index}Name`] ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full bg-white/5 border rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition ${
+                              errors[`traveler${index}Name`] ? 'border-red-500' : 'border-white/10'
                             }`}
                             placeholder="John Doe"
-                            required
                           />
                           {errors[`traveler${index}Name`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`traveler${index}Name`]}</p>
+                            <p className="text-red-400 text-xs mt-1">{errors[`traveler${index}Name`]}</p>
                           )}
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Age *
-                          </label>
+                          <label className="text-sm font-semibold text-slate-300 mb-2 block">Age *</label>
                           <input
                             type="number"
-                            min="1"
-                            max="120"
                             value={traveler.age}
                             onChange={(e) => updateTraveler(traveler.id, 'age', e.target.value)}
-                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-orange-500 ${
-                              errors[`traveler${index}Age`] ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full bg-white/5 border rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition ${
+                              errors[`traveler${index}Age`] ? 'border-red-500' : 'border-white/10'
                             }`}
                             placeholder="25"
-                            required
                           />
                           {errors[`traveler${index}Age`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`traveler${index}Age`]}</p>
+                            <p className="text-red-400 text-xs mt-1">{errors[`traveler${index}Age`]}</p>
                           )}
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Gender
-                          </label>
+                          <label className="text-sm font-semibold text-slate-300 mb-2 block">Gender</label>
                           <select
                             value={traveler.gender}
                             onChange={(e) => updateTraveler(traveler.id, 'gender', e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
                           >
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
+                            <option className="bg-slate-900">Male</option>
+                            <option className="bg-slate-900">Female</option>
+                            <option className="bg-slate-900">Other</option>
                           </select>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Phone *
-                          </label>
+                          <label className="text-sm font-semibold text-slate-300 mb-2 block">Phone *</label>
                           <input
                             type="tel"
                             value={traveler.phone}
                             onChange={(e) => updateTraveler(traveler.id, 'phone', e.target.value)}
-                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-orange-500 ${
-                              errors[`traveler${index}Phone`] ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full bg-white/5 border rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition ${
+                              errors[`traveler${index}Phone`] ? 'border-red-500' : 'border-white/10'
                             }`}
                             placeholder="+91 98765 43210"
-                            required
                           />
                           {errors[`traveler${index}Phone`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`traveler${index}Phone`]}</p>
+                            <p className="text-red-400 text-xs mt-1">{errors[`traveler${index}Phone`]}</p>
                           )}
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Email *
-                          </label>
+                          <label className="text-sm font-semibold text-slate-300 mb-2 block">Email *</label>
                           <input
                             type="email"
                             value={traveler.email}
                             onChange={(e) => updateTraveler(traveler.id, 'email', e.target.value)}
-                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-orange-500 ${
-                              errors[`traveler${index}Email`] ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full bg-white/5 border rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition ${
+                              errors[`traveler${index}Email`] ? 'border-red-500' : 'border-white/10'
                             }`}
                             placeholder="john@example.com"
-                            required
                           />
                           {errors[`traveler${index}Email`] && (
-                            <p className="text-red-500 text-xs mt-1">{errors[`traveler${index}Email`]}</p>
+                            <p className="text-red-400 text-xs mt-1">{errors[`traveler${index}Email`]}</p>
                           )}
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Emergency Contact
-                          </label>
-                          <input
-                            type="tel"
-                            value={traveler.emergencyContact}
-                            onChange={(e) => updateTraveler(traveler.id, 'emergencyContact', e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                            placeholder="+91 98765 43210"
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Dietary Restrictions
-                          </label>
+                          <label className="text-sm font-semibold text-slate-300 mb-2 block">Dietary Restrictions</label>
                           <select
                             value={traveler.dietaryRestrictions}
                             onChange={(e) => updateTraveler(traveler.id, 'dietaryRestrictions', e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
                           >
-                            <option>None</option>
-                            <option>Vegetarian</option>
-                            <option>Vegan</option>
-                            <option>Gluten Free</option>
-                            <option>Other</option>
+                            <option className="bg-slate-900">None</option>
+                            <option className="bg-slate-900">Vegetarian</option>
+                            <option className="bg-slate-900">Vegan</option>
                           </select>
                         </div>
                       </div>
-                    </Card>
+                    </motion.div>
                   ))}
-                </div>
 
-                {formData.travelers.length < 10 && (
-                  <button
-                    onClick={addTraveler}
-                    className="text-orange-500 hover:text-orange-600 font-semibold mb-8 transition"
-                  >
-                    + Add Another Traveler
-                  </button>
-                )}
+                  {formData.travelers.length < 10 && (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={addTraveler}
+                      className="text-purple-400 hover:text-purple-300 font-semibold transition"
+                    >
+                      + Add Another Traveler
+                    </motion.button>
+                  )}
 
-                <div className="flex gap-4">
-                  <Button fullWidth variant="secondary" onClick={() => navigate(`/trips/${tripId}`)}>
-                    Cancel
-                  </Button>
-                  <Button fullWidth onClick={handleNext}>
-                    Continue to Details
-                  </Button>
-                </div>
-              </Card>
-            )}
-
-            {/* Step 2: Details & Terms */}
-            {step === 2 && (
-              <Card className="p-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Review & Confirm</h2>
-
-                <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h3 className="font-bold text-gray-800 mb-4">Booking Summary</h3>
-                  <div className="space-y-2 text-gray-700">
-                    <p><span className="font-semibold">Trip:</span> {trip.name}</p>
-                    <p><span className="font-semibold">Destination:</span> {trip.destination}</p>
-                    <p><span className="font-semibold">Duration:</span> {trip.duration} days</p>
-                    <p><span className="font-semibold">Date:</span> {trip.startDate}</p>
-                    <p><span className="font-semibold">Travelers:</span> {formData.numTravelers}</p>
+                  <div className="flex gap-4 pt-6">
+                    <Button fullWidth variant="secondary" onClick={() => navigate(`/trips/${tripId}`)}>
+                      Cancel
+                    </Button>
+                    <Button fullWidth onClick={handleNext}>
+                      Continue <FiArrowRight className="inline ml-2" size={18} />
+                    </Button>
                   </div>
-                </div>
+                </motion.div>
+              )}
 
-                <div className="mb-8 p-6 bg-gray-50 rounded-lg">
-                  <h3 className="font-bold text-gray-800 mb-4">Travelers</h3>
-                  <div className="space-y-3">
-                    {formData.travelers.map((traveler, index) => (
-                      <div key={traveler.id} className="flex items-center">
-                        <FiUser className="text-orange-500 mr-3" />
-                        <span className="text-gray-700">{index + 1}. {traveler.fullName} ({traveler.age} years)</span>
-                      </div>
-                    ))}
+              {/* Step 2 */}
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="backdrop-blur-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-8 shadow-2xl">
+                    <h2 className="text-3xl font-black text-white mb-6">Review & Confirm</h2>
+                    <div className="space-y-3 text-slate-200">
+                      <p><span className="font-semibold text-purple-400">Trip:</span> {trip.name}</p>
+                      <p><span className="font-semibold text-purple-400">Duration:</span> {trip.duration} days</p>
+                      <p><span className="font-semibold text-purple-400">Travelers:</span> {formData.numTravelers}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h3 className="font-bold text-gray-800 mb-3">Important Information</h3>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li>✓ Please reach 30 minutes before departure</li>
-                    <li>✓ Carry valid ID proof</li>
-                    <li>✓ Bring weather-appropriate clothing</li>
-                    <li>✓ Travel insurance is included (up to ₹4.5 lakhs)</li>
-                    <li>✓ Cancellation available up to 7 days before trip</li>
-                  </ul>
-                </div>
+                  <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
+                    <h3 className="text-xl font-bold text-white mb-4">Travelers List</h3>
+                    <div className="space-y-3">
+                      {formData.travelers.map((t, i) => (
+                        <div key={t.id} className="flex items-center text-slate-200">
+                          <FiUser className="text-purple-400 mr-3" /> {i + 1}. {t.fullName} ({t.age})
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-                <div className="mb-8">
-                  <label className="flex items-start p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition">
+                  <label className="flex items-start p-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:border-white/20 transition">
                     <input
                       type="checkbox"
                       checked={formData.termsAccepted}
                       onChange={(e) => {
                         setFormData(prev => ({ ...prev, termsAccepted: e.target.checked }));
-                        if (errors.terms) {
-                          setErrors(prev => ({ ...prev, terms: '' }));
-                        }
+                        if (errors.terms) setErrors(prev => ({ ...prev, terms: '' }));
                       }}
-                      className="mt-1 mr-3 w-5 h-5 accent-orange-500"
+                      className="mt-1 mr-3 w-5 h-5 accent-purple-500"
                     />
                     <div>
-                      <p className="font-semibold text-gray-800">I agree to Terms & Conditions</p>
-                      <p className="text-sm text-gray-600">I understand the cancellation policy, safety guidelines, and have reviewed all trip details.</p>
+                      <p className="font-semibold text-white">I agree to Terms & Conditions</p>
+                      <p className="text-sm text-slate-400">Cancellation, safety & all details reviewed</p>
                     </div>
                   </label>
-                  {errors.terms && (
-                    <p className="text-red-500 text-xs mt-2">{errors.terms}</p>
-                  )}
-                </div>
+                  {errors.terms && <p className="text-red-400 text-xs">{errors.terms}</p>}
 
-                <div className="flex gap-4">
-                  <Button fullWidth variant="secondary" onClick={handleBack}>
-                    Back
-                  </Button>
-                  <Button fullWidth onClick={handleNext}>
-                    Continue to Payment
-                  </Button>
-                </div>
-              </Card>
-            )}
+                  <div className="flex gap-4 pt-6">
+                    <Button fullWidth variant="secondary" onClick={handleBack}>
+                      Back
+                    </Button>
+                    <Button fullWidth onClick={handleNext}>
+                      Payment <FiArrowRight className="inline ml-2" size={18} />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
 
-            {/* Step 3: Payment */}
-            {step === 3 && (
-              <Card className="p-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Payment Method</h2>
+              {/* Step 3 */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl space-y-6"
+                >
+                  <h2 className="text-3xl font-black text-white">Payment Method</h2>
 
-                <div className="mb-8 space-y-3">
-                  <label className="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="card"
-                      checked={formData.paymentMethod === 'card'}
-                      onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                      className="mr-3 w-4 h-4 accent-orange-500"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-800">💳 Credit/Debit Card</p>
-                      <p className="text-sm text-gray-600">Visa, Mastercard, American Express</p>
-                    </div>
-                  </label>
+                  <div className="space-y-4">
+                    {[
+                      { id: 'card', title: '💳 Credit/Debit Card', desc: 'Visa, Mastercard, Amex' },
+                      { id: 'upi', title: '📱 UPI', desc: 'Google Pay, PhonePe, Paytm' },
+                      { id: 'netbanking', title: '🏦 Net Banking', desc: 'All major banks' }
+                    ].map(method => (
+                      <motion.label
+                        key={method.id}
+                        whileHover={{ scale: 1.02 }}
+                        className="flex items-center p-4 backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/8 hover:border-white/20 transition"
+                      >
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={method.id}
+                          checked={formData.paymentMethod === method.id}
+                          onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                          className="mr-4 w-5 h-5 accent-purple-500"
+                        />
+                        <div>
+                          <p className="font-semibold text-white">{method.title}</p>
+                          <p className="text-sm text-slate-400">{method.desc}</p>
+                        </div>
+                      </motion.label>
+                    ))}
+                  </div>
 
-                  <label className="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="upi"
-                      checked={formData.paymentMethod === 'upi'}
-                      onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                      className="mr-3 w-4 h-4 accent-orange-500"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-800">📱 UPI</p>
-                      <p className="text-sm text-gray-600">Google Pay, PhonePe, Paytm</p>
-                    </div>
-                  </label>
+                  <div className="backdrop-blur-lg bg-green-500/10 border border-green-500/30 rounded-xl p-4 flex items-start gap-3">
+                    <FiLock className="text-green-400 flex-shrink-0 mt-1" />
+                    <p className="text-green-300 text-sm"><span className="font-semibold">Secure Payment</span> - Encrypted & PCI Compliant</p>
+                  </div>
 
-                  <label className="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-orange-500 transition">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="netbanking"
-                      checked={formData.paymentMethod === 'netbanking'}
-                      onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                      className="mr-3 w-4 h-4 accent-orange-500"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-800">🏦 Net Banking</p>
-                      <p className="text-sm text-gray-600">All major banks supported</p>
-                    </div>
-                  </label>
-                </div>
-
-                <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-700">
-                    <FiCheck className="inline mr-2" />
-                    <span className="font-semibold">Secure Payment</span> - Your payment is encrypted and secure
-                  </p>
-                </div>
-
-                <div className="flex gap-4 mb-8">
-                  <Button fullWidth variant="secondary" onClick={handleBack} disabled={loading}>
-                    Back
-                  </Button>
-                  <Button fullWidth onClick={handleSubmit} disabled={loading}>
-                    {loading ? 'Processing...' : `Pay ₹${total.toLocaleString()}`}
-                  </Button>
-                </div>
-              </Card>
-            )}
+                  <div className="flex gap-4 pt-6">
+                    <Button fullWidth variant="secondary" onClick={handleBack} disabled={loading}>
+                      Back
+                    </Button>
+                    <Button fullWidth onClick={handleSubmit} disabled={loading}>
+                      {loading ? 'Processing...' : `Pay ₹${total.toLocaleString()}`}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-20">
-              <h3 className="text-lg font-bold text-gray-800 mb-6">Order Summary</h3>
+          {/* Order Summary */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="lg:col-span-1"
+          >
+            <div className="sticky top-20 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-2xl space-y-6">
+              <h3 className="text-2xl font-black text-white">Summary</h3>
 
-              <div className="space-y-4 mb-6 pb-6 border-b">
-                <div className="flex justify-between text-gray-600">
+              <div className="space-y-3 pb-6 border-b border-white/10">
+                <div className="flex justify-between text-slate-300">
                   <span>{trip.name}</span>
                   <span className="font-semibold">₹{trip.price.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-slate-300">
                   <span>× {formData.numTravelers} traveler{formData.numTravelers > 1 ? 's' : ''}</span>
                   <span className="font-semibold">₹{subtotal.toLocaleString()}</span>
                 </div>
-
-                <div className="flex justify-between text-gray-600 text-sm">
+                <div className="flex justify-between text-slate-400 text-sm">
                   <span>Service Fee</span>
-                  <span className="font-semibold">₹{serviceFee.toLocaleString()}</span>
+                  <span>₹{serviceFee.toLocaleString()}</span>
                 </div>
-
-                <div className="flex justify-between text-gray-600 text-sm">
+                <div className="flex justify-between text-slate-400 text-sm">
                   <span>GST (5%)</span>
-                  <span className="font-semibold">₹{gst.toLocaleString()}</span>
+                  <span>₹{gst.toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="flex justify-between text-lg font-bold text-gray-800 mb-8">
-                <span>Total Amount</span>
-                <span className="text-orange-500">₹{total.toLocaleString()}</span>
+              <div className="flex justify-between text-xl font-black">
+                <span className="text-white">Total</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400">₹{total.toLocaleString()}</span>
               </div>
 
-              <div className="space-y-3 text-sm">
-                <div className="flex items-start p-3 bg-green-50 rounded-lg">
-                  <FiCheck className="text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-green-700"><span className="font-semibold">Free Insurance</span> - Up to ₹4.5 lakhs</span>
-                </div>
-
-                <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-                  <FiCheck className="text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-blue-700"><span className="font-semibold">Certified Leader</span> - AMC/BMC qualified</span>
-                </div>
-
-                <div className="flex items-start p-3 bg-orange-50 rounded-lg">
-                  <FiCheck className="text-orange-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-orange-700"><span className="font-semibold">Money-back Guarantee</span> - If unsatisfied</span>
-                </div>
+              <div className="space-y-3">
+                {[
+                  { icon: '✓', text: 'Free Insurance', color: 'green' },
+                  { icon: '✓', text: 'Certified Leader', color: 'blue' },
+                  { icon: '✓', text: 'Money-back Guarantee', color: 'orange' }
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className={`flex items-center gap-2 p-3 rounded-lg bg-${item.color}-500/10 border border-${item.color}-500/30 text-${item.color}-300`}
+                  >
+                    <span>{item.icon}</span> <span className="text-sm font-semibold">{item.text}</span>
+                  </motion.div>
+                ))}
               </div>
-
-              <div className="mt-6 pt-6 border-t">
-                <p className="text-xs text-gray-500 text-center">
-                  By proceeding, you agree to our Terms & Conditions and Privacy Policy
-                </p>
-              </div>
-            </Card>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>

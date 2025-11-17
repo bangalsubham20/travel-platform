@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { FiEdit2, FiLogOut, FiBookmark, FiStar, FiX, FiCheck } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiEdit2, FiLogOut, FiBookmark, FiStar, FiX, FiCheck, FiCamera, FiBell, FiLock, FiTrash2 } from 'react-icons/fi';
 import bookingService from '../services/bookingService';
 import reviewService from '../services/reviewService';
 
@@ -12,7 +13,6 @@ function Profile() {
   const { user, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
   
-  // State management
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('bookings');
   const [loading, setLoading] = useState(true);
@@ -26,10 +26,9 @@ function Profile() {
     email: user?.email || '',
     phone: user?.phone || '',
     bio: user?.bio || 'Adventure enthusiast! 🌍',
-    avatar: user?.avatar || 'https://via.placeholder.com/150'
+    avatar: user?.avatar || 'https://i.pravatar.cc/150?img=1'
   });
 
-  // Mock data as fallback
   const mockBookings = [
     {
       id: 1,
@@ -90,14 +89,12 @@ function Profile() {
     }
   ];
 
-  // Fetch user bookings and reviews on mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Update form data with current user info
         if (user) {
           setFormData(prev => ({
             ...prev,
@@ -108,12 +105,10 @@ function Profile() {
             avatar: user.avatar || prev.avatar
           }));
 
-          // Try to fetch from backend
           try {
             const bookings = await bookingService.getUserBookings();
             setUserBookings(bookings);
           } catch (err) {
-            console.warn('Failed to fetch bookings, using mock data:', err);
             setUserBookings(mockBookings);
           }
 
@@ -121,7 +116,6 @@ function Profile() {
             const reviews = await reviewService.getUserReviews();
             setUserReviews(reviews);
           } catch (err) {
-            console.warn('Failed to fetch reviews, using mock data:', err);
             setUserReviews(mockReviews);
           }
         } else {
@@ -129,7 +123,6 @@ function Profile() {
         }
       } catch (err) {
         console.error('Error fetching user data:', err);
-        setError('Failed to load profile data');
         setUserBookings(mockBookings);
         setUserReviews(mockReviews);
       } finally {
@@ -140,45 +133,38 @@ function Profile() {
     fetchUserData();
   }, [user]);
 
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle profile save
   const handleSaveProfile = async () => {
     try {
       setIsSaving(true);
       await updateProfile(formData);
       setIsEditing(false);
-      // Show success message (optional: add toast notification)
     } catch (err) {
       setError('Failed to update profile');
-      console.error(err);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Handle logout
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  // Get status badge color
   const getStatusBadge = (status) => {
     const styles = {
-      confirmed: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-red-100 text-red-800'
+      confirmed: 'from-green-500/10 to-green-600/10 border-green-500/30 text-green-300',
+      pending: 'from-yellow-500/10 to-yellow-600/10 border-yellow-500/30 text-yellow-300',
+      completed: 'from-blue-500/10 to-blue-600/10 border-blue-500/30 text-blue-300',
+      cancelled: 'from-red-500/10 to-red-600/10 border-red-500/30 text-red-300'
     };
     return styles[status] || styles.pending;
   };
 
-  // Calculate days until trip
   const calculateDaysUntil = (date) => {
     const tripDate = new Date(date);
     const today = new Date();
@@ -186,7 +172,6 @@ function Profile() {
     return daysLeft;
   };
 
-  // Calculate stats
   const totalBookings = userBookings.length;
   const completedTrips = userBookings.filter(b => b.status === 'completed').length;
   const upcomingTrips = userBookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
@@ -194,386 +179,462 @@ function Profile() {
     ? (userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length).toFixed(1) 
     : 0;
 
-  // Loading state
   if (loading) return <LoadingSpinner />;
 
-  // Not logged in state
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <Card className="p-12 text-center">
-            <p className="text-2xl text-gray-600 mb-4">Please log in to view your profile</p>
-            <Button onClick={() => navigate('/login')}>Go to Login</Button>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-12 max-w-md w-full text-center shadow-2xl"
+        >
+          <p className="text-2xl text-slate-300 mb-6">Please log in to view your profile</p>
+          <Button fullWidth onClick={() => navigate('/login')}>Go to Login</Button>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Error notification */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
-          </div>
-        )}
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white pb-16 overflow-hidden">
+      {/* Animated Background */}
+      <motion.div className="fixed -top-96 -right-96 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-purple-600/20 via-indigo-600/15 to-transparent blur-3xl -z-10"
+        animate={{ y: [0, 60, 0] }}
+        transition={{ duration: 12, repeat: Infinity }} />
+      <motion.div className="fixed -bottom-96 -left-96 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-blue-600/20 via-cyan-500/15 to-transparent blur-3xl -z-10"
+        animate={{ y: [0, -50, 0] }}
+        transition={{ duration: 15, repeat: Infinity }} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        {/* Error Alert */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-4 mb-6 backdrop-blur-xl bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-4 rounded-xl"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           {/* Sidebar - Profile Card */}
-          <div className="lg:col-span-1">
-            <Card className="p-8 text-center sticky top-20">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-1"
+          >
+            <div className="sticky top-20 backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl hover:border-white/20 transition-all">
               {/* Avatar */}
-              <div className="mb-6">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-6 relative w-fit mx-auto"
+              >
                 <img
                   src={formData.avatar}
                   alt={formData.name}
-                  className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-orange-200"
+                  className="w-28 h-28 rounded-full object-cover ring-4 ring-purple-500/50 shadow-lg"
                 />
-                <h2 className="text-2xl font-bold text-gray-800">{formData.name}</h2>
-                <p className="text-gray-600 text-sm mb-2">{formData.email}</p>
-                <p className="text-gray-500 text-sm italic line-clamp-2">{formData.bio}</p>
-              </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="absolute bottom-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-full text-white shadow-lg"
+                >
+                  <FiCamera size={16} />
+                </motion.button>
+              </motion.div>
+
+              <h2 className="text-3xl font-black text-white text-center mb-2">{formData.name}</h2>
+              <p className="text-sm text-slate-400 text-center mb-1">{formData.email}</p>
+              <p className="text-sm text-slate-500 text-center italic line-clamp-2">{formData.bio}</p>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-6 py-6 border-y">
-                <div>
-                  <p className="text-2xl font-bold text-orange-500">{totalBookings}</p>
-                  <p className="text-xs text-gray-600">Total Trips</p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="grid grid-cols-3 gap-4 my-8 py-6 border-t border-b border-white/10"
+              >
+                <div className="text-center hover:scale-110 transition cursor-pointer">
+                  <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400">
+                    {totalBookings}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">Trips</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-green-500">{completedTrips}</p>
-                  <p className="text-xs text-gray-600">Completed</p>
+                <div className="text-center hover:scale-110 transition cursor-pointer">
+                  <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                    {completedTrips}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">Completed</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-blue-500">⭐{avgRating}</p>
-                  <p className="text-xs text-gray-600">Avg Rating</p>
+                <div className="text-center hover:scale-110 transition cursor-pointer">
+                  <p className="text-2xl font-black">⭐{avgRating}</p>
+                  <p className="text-xs text-slate-400 mt-1">Rating</p>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Actions */}
-              <div className="space-y-2">
-                <Button
-                  fullWidth
-                  variant={isEditing ? 'secondary' : 'outline'}
-                  onClick={() => setIsEditing(!isEditing)}
-                  size="sm"
-                >
-                  <FiEdit2 className="inline mr-2" size={16} />
-                  {isEditing ? 'Cancel' : 'Edit Profile'}
-                </Button>
-                <Button
-                  fullWidth
-                  variant="danger"
-                  onClick={handleLogout}
-                  size="sm"
-                >
-                  <FiLogOut className="inline mr-2" size={16} />
-                  Logout
-                </Button>
+              <div className="space-y-3 mb-6">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    fullWidth
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={isEditing ? 'bg-white/10' : 'bg-gradient-to-r from-purple-500 to-pink-500'}
+                  >
+                    <FiEdit2 className="inline mr-2" size={16} />
+                    {isEditing ? 'Cancel' : 'Edit Profile'}
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    fullWidth
+                    onClick={handleLogout}
+                    className="bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30"
+                  >
+                    <FiLogOut className="inline mr-2" size={16} />
+                    Logout
+                  </Button>
+                </motion.div>
               </div>
 
-              {/* Member Since */}
-              <div className="mt-6 pt-6 border-t text-sm text-gray-500">
-                <p>Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'recently'}</p>
-                <p className="text-xs mt-1">WravelerForLife 🌍</p>
+              {/* Member Badge */}
+              <div className="pt-6 border-t border-white/10 text-center">
+                <p className="text-xs text-slate-400">Member since</p>
+                <p className="text-sm font-bold text-purple-400 mt-1">
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Recently'}
+                </p>
+                <p className="text-xs text-slate-500 mt-2">WravelerForLife 🌍</p>
               </div>
-            </Card>
-          </div>
+            </div>
+          </motion.div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-2 space-y-8"
+          >
             {/* Edit Profile Form */}
-            {isEditing && (
-              <Card className="p-8 mb-8 border-l-4 border-orange-500">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit Profile</h2>
+            <AnimatePresence>
+              {isEditing && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-purple-500/30 rounded-2xl p-8 shadow-2xl"
+                >
+                  <h2 className="text-3xl font-bold text-white mb-6">Edit Profile</h2>
 
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
+                  <div className="space-y-5">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-300 mb-2 block">Full Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      disabled
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                  </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-300 mb-2 block">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        disabled
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-slate-500 cursor-not-allowed opacity-60"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-300 mb-2 block">Phone</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Bio
-                    </label>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleInputChange}
-                      rows="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 resize-none"
-                      placeholder="Tell us about yourself..."
-                    />
-                  </div>
+                    <div>
+                      <label className="text-sm font-semibold text-slate-300 mb-2 block">Bio</label>
+                      <textarea
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleInputChange}
+                        rows="4"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition resize-none"
+                        placeholder="Tell us about yourself..."
+                      />
+                    </div>
 
-                  <div className="flex gap-3 pt-4">
-                    <Button fullWidth onClick={handleSaveProfile} disabled={isSaving}>
-                      <FiCheck className="inline mr-2" size={16} />
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="secondary"
-                      onClick={() => setIsEditing(false)}
-                      disabled={isSaving}
-                    >
-                      <FiX className="inline mr-2" size={16} />
-                      Cancel
-                    </Button>
+                    <div className="flex gap-3 pt-4">
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+                        <Button fullWidth onClick={handleSaveProfile} disabled={isSaving}>
+                          <FiCheck className="inline mr-2" size={16} />
+                          {isSaving ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+                        <Button fullWidth onClick={() => setIsEditing(false)} className="bg-white/10 border border-white/20">
+                          <FiX className="inline mr-2" size={16} />
+                          Cancel
+                        </Button>
+                      </motion.div>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Tabs */}
-            <div className="flex gap-4 mb-8 border-b overflow-x-auto">
-              {['bookings', 'reviews', 'settings'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`pb-4 font-semibold capitalize whitespace-nowrap ${
-                    activeTab === tab
-                      ? 'border-b-2 border-orange-500 text-orange-500'
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                >
-                  {tab === 'bookings' && <FiBookmark className="inline mr-2" size={18} />}
-                  {tab === 'reviews' && <FiStar className="inline mr-2" size={18} />}
-                  {tab}
-                </button>
-              ))}
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-2xl"
+            >
+              <div className="flex gap-6 border-b border-white/10 overflow-x-auto">
+                {[
+                  { id: 'bookings', label: 'Bookings', icon: FiBookmark },
+                  { id: 'reviews', label: 'Reviews', icon: FiStar },
+                  { id: 'settings', label: 'Settings', icon: FiBell }
+                ].map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      whileHover={{ y: -2 }}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`pb-4 font-semibold capitalize whitespace-nowrap flex items-center gap-2 transition ${
+                        activeTab === tab.id
+                          ? 'text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 border-b-2 border-purple-500'
+                          : 'text-slate-400 hover:text-slate-300'
+                      }`}
+                    >
+                      <Icon size={18} /> {tab.label}
+                    </motion.button>
+                  );
+                })}
+              </div>
 
-            {/* Bookings Tab */}
-            {activeTab === 'bookings' && (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">My Bookings</h2>
-                  <Button onClick={() => navigate('/trips')}>Book New Trip</Button>
-                </div>
+              {/* Bookings Tab */}
+              <AnimatePresence mode="wait">
+                {activeTab === 'bookings' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="pt-6 space-y-4"
+                  >
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-bold text-white">My Bookings</h2>
+                      <Button onClick={() => navigate('/trips')} size="sm">Book New Trip</Button>
+                    </div>
 
-                {userBookings.length > 0 ? (
-                  userBookings.map((booking) => {
-                    const daysLeft = calculateDaysUntil(booking.startDate);
-                    const isUpcoming = daysLeft > 0;
+                    {userBookings.length > 0 ? (
+                      userBookings.map((booking, idx) => {
+                        const daysLeft = calculateDaysUntil(booking.startDate);
+                        const isUpcoming = daysLeft > 0;
 
-                    return (
-                      <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                          {/* Image */}
-                          <div className="md:col-span-1">
-                            <img
-                              src={booking.image}
-                              alt={booking.tripName}
-                              className="w-full h-40 object-cover"
-                            />
+                        return (
+                          <motion.div
+                            key={booking.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-white/20 hover:bg-white/8 transition-all"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                              <div className="md:col-span-1 h-40 overflow-hidden">
+                                <motion.img
+                                  src={booking.image}
+                                  alt={booking.tripName}
+                                  className="w-full h-full object-cover"
+                                  whileHover={{ scale: 1.1 }}
+                                  transition={{ duration: 0.5 }}
+                                />
+                              </div>
+
+                              <div className="md:col-span-3 p-6">
+                                <div className="flex justify-between items-start mb-3">
+                                  <div>
+                                    <h3 className="text-lg font-bold text-white">{booking.tripName}</h3>
+                                    <p className="text-slate-400 text-sm">📍 {booking.destination}</p>
+                                  </div>
+                                  <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className={`text-xs font-bold px-3 py-1 rounded-full backdrop-blur-lg bg-gradient-to-r ${getStatusBadge(booking.status)}`}
+                                  >
+                                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                  </motion.span>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                                  {[
+                                    { label: 'Check-in', value: booking.startDate },
+                                    { label: 'Check-out', value: booking.endDate },
+                                    { label: 'Travelers', value: booking.travelers },
+                                    { label: 'Price', value: `₹${booking.price.toLocaleString()}` }
+                                  ].map((item, i) => (
+                                    <div key={i}>
+                                      <p className="text-slate-500 text-xs">{item.label}</p>
+                                      <p className="font-semibold text-white">{item.value}</p>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2">
+                                  <div>
+                                    {isUpcoming ? (
+                                      <p className="text-sm text-green-400 font-semibold">
+                                        ✓ Starts in {daysLeft} days
+                                      </p>
+                                    ) : (
+                                      <p className="text-sm text-slate-400">
+                                        Completed on {booking.endDate}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Button size="sm" className="bg-white/10 border border-white/20">
+                                    View Details
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl p-12 text-center"
+                      >
+                        <p className="text-slate-400 mb-4">No bookings yet</p>
+                        <Button onClick={() => navigate('/trips')}>Start Exploring</Button>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* Reviews Tab */}
+                {activeTab === 'reviews' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="pt-6 space-y-4"
+                  >
+                    <h2 className="text-2xl font-bold text-white mb-6">My Reviews ({userReviews.length})</h2>
+
+                    {userReviews.length > 0 ? (
+                      userReviews.map((review, idx) => (
+                        <motion.div
+                          key={review.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h3 className="text-lg font-bold text-white">{review.tripName}</h3>
+                              <p className="text-sm text-slate-500">Reviewed on {review.date}</p>
+                            </div>
+                            <div className="text-lg">{'⭐'.repeat(review.rating)}</div>
                           </div>
 
-                          {/* Content */}
-                          <div className="md:col-span-3 p-6">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h3 className="text-lg font-bold text-gray-800">{booking.tripName}</h3>
-                                <p className="text-gray-600 text-sm">📍 {booking.destination}</p>
-                              </div>
-                              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusBadge(booking.status)}`}>
-                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                              </span>
-                            </div>
+                          <h4 className="font-bold text-white mb-2">{review.title}</h4>
+                          <p className="text-slate-300 mb-4">{review.text}</p>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                              <div>
-                                <p className="text-gray-500 text-xs">Check-in</p>
-                                <p className="font-semibold text-gray-800">{booking.startDate}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs">Check-out</p>
-                                <p className="font-semibold text-gray-800">{booking.endDate}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs">Travelers</p>
-                                <p className="font-semibold text-gray-800">{booking.travelers}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs">Price</p>
-                                <p className="font-bold text-orange-500">₹{booking.price.toLocaleString()}</p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <div>
-                                {isUpcoming ? (
-                                  <p className="text-sm text-green-600 font-semibold">
-                                    ✓ Starts in {daysLeft} days
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-gray-600">
-                                    Completed on {booking.endDate}
-                                  </p>
-                                )}
-                              </div>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={() => navigate(`/trips/${booking.id}`)}
-                              >
-                                View Details
-                              </Button>
+                          <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                            <p className="text-sm text-slate-500">{review.helpful} travelers found this helpful</p>
+                            <div className="flex gap-2">
+                              <Button size="sm" className="bg-white/10">Edit</Button>
+                              <Button size="sm" className="bg-red-500/10 text-red-400">Delete</Button>
                             </div>
                           </div>
-                        </div>
-                      </Card>
-                    );
-                  })
-                ) : (
-                  <Card className="p-12 text-center">
-                    <p className="text-gray-600 mb-4">No bookings yet</p>
-                    <Button onClick={() => navigate('/trips')}>Start Exploring</Button>
-                  </Card>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl p-12 text-center">
+                        <p className="text-slate-400 mb-4">No reviews yet</p>
+                        <Button onClick={() => navigate('/trips')}>Explore Trips</Button>
+                      </motion.div>
+                    )}
+                  </motion.div>
                 )}
-              </div>
-            )}
 
-            {/* Reviews Tab */}
-            {activeTab === 'reviews' && (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">My Reviews ({userReviews.length})</h2>
-                </div>
+                {/* Settings Tab */}
+                {activeTab === 'settings' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="pt-6 space-y-6"
+                  >
+                    <div className="backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl p-6">
+                      <h3 className="text-xl font-bold text-white mb-4">Notifications</h3>
 
-                {userReviews.length > 0 ? (
-                  userReviews.map((review) => (
-                    <Card key={review.id} className="p-6">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-800">{review.tripName}</h3>
-                          <p className="text-sm text-gray-500">Posted on {review.date}</p>
-                        </div>
-                        <div className="text-yellow-500 text-lg">{'⭐'.repeat(review.rating)}</div>
+                      <div className="space-y-3">
+                        {[
+                          { label: 'Email Notifications', desc: 'Booking updates', defaultChecked: true },
+                          { label: 'SMS Notifications', desc: 'Important alerts', defaultChecked: true },
+                          { label: 'Marketing Emails', desc: 'Special offers', defaultChecked: false },
+                          { label: 'Community Updates', desc: 'Messages from WravelForLife', defaultChecked: true }
+                        ].map((item, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/8 transition"
+                          >
+                            <div>
+                              <p className="font-semibold text-white">{item.label}</p>
+                              <p className="text-sm text-slate-500">{item.desc}</p>
+                            </div>
+                            <input type="checkbox" defaultChecked={item.defaultChecked} className="w-5 h-5 accent-purple-500" />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="backdrop-blur-lg bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+                      <h3 className="text-lg font-bold text-red-300 mb-4">Danger Zone</h3>
+
+                      <div className="space-y-3">
+                        <Button fullWidth size="sm" className="bg-red-500/20 border border-red-500/30 text-red-300">
+                          <FiLock className="inline mr-2" size={16} /> Change Password
+                        </Button>
+                        <Button fullWidth size="sm" className="bg-red-600/20 border border-red-600/30 text-red-300">
+                          <FiTrash2 className="inline mr-2" size={16} /> Delete Account
+                        </Button>
                       </div>
 
-                      <h4 className="font-bold text-gray-800 mb-2">{review.title}</h4>
-                      <p className="text-gray-700 mb-4">{review.text}</p>
-
-                      <div className="flex items-center justify-between pt-4 border-t flex-wrap gap-2">
-                        <p className="text-sm text-gray-500">{review.helpful} travelers found this helpful</p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">Edit</Button>
-                          <Button size="sm" variant="secondary">Delete</Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))
-                ) : (
-                  <Card className="p-12 text-center">
-                    <p className="text-gray-600 mb-4">No reviews yet</p>
-                    <p className="text-sm text-gray-500 mb-4">Complete a trip to write a review</p>
-                    <Button onClick={() => navigate('/trips')}>Explore Trips</Button>
-                  </Card>
+                      <p className="text-sm text-red-400/70 mt-4">
+                        Deleting your account will permanently remove all your data. This action cannot be undone.
+                      </p>
+                    </div>
+                  </motion.div>
                 )}
-              </div>
-            )}
-
-            {/* Settings Tab */}
-            {activeTab === 'settings' && (
-              <div className="space-y-6">
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4">Notifications</h2>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-800">Email Notifications</p>
-                        <p className="text-sm text-gray-600">Receive updates about your bookings</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5 accent-orange-500" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-800">SMS Notifications</p>
-                        <p className="text-sm text-gray-600">Get important alerts via SMS</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5 accent-orange-500" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-800">Marketing Emails</p>
-                        <p className="text-sm text-gray-600">Special offers and new trips</p>
-                      </div>
-                      <input type="checkbox" className="w-5 h-5 accent-orange-500" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-800">Community Updates</p>
-                        <p className="text-sm text-gray-600">Messages from WravelerForLife</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5 accent-orange-500" />
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6 border-l-4 border-red-500">
-                  <h2 className="text-lg font-bold text-gray-800 mb-4">Danger Zone</h2>
-
-                  <div className="space-y-3">
-                    <Button fullWidth variant="danger" size="sm">
-                      Change Password
-                    </Button>
-                    <Button fullWidth variant="danger" size="sm">
-                      Delete Account
-                    </Button>
-                  </div>
-
-                  <p className="text-sm text-gray-500 mt-4">
-                    Deleting your account will permanently remove all your data. This action cannot be undone.
-                  </p>
-                </Card>
-              </div>
-            )}
-          </div>
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </div>

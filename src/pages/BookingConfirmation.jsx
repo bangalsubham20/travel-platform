@@ -1,145 +1,334 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
-import { FiCheck, FiDownload, FiShare2 } from 'react-icons/fi';
+import { FiCheck, FiDownload, FiShare2, FiArrowRight, FiPhone, FiMail } from 'react-icons/fi';
 
 function BookingConfirmation() {
   const { tripId } = useParams();
   const navigate = useNavigate();
+  const [confetti, setConfetti] = useState([]);
 
   const bookingId = 'BK' + Math.random().toString(36).substring(2, 9).toUpperCase();
 
+  // Generate confetti on mount
+  useEffect(() => {
+    setConfetti(Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.5,
+      duration: 2 + Math.random() * 1
+    })));
+  }, []);
+
+  const tripDetails = {
+    '1': { name: 'Winter Spiti Valley', date: 'Jan 15-22, 2025', price: '21,150' },
+    '2': { name: 'Leh Ladakh Adventure', date: 'Feb 20-26, 2025', price: '34,650' }
+  };
+
+  const trip = tripDetails[tripId] || tripDetails['1'];
+
+  const nextSteps = [
+    {
+      number: 1,
+      title: 'Download Confirmation',
+      desc: 'Check your email for the PDF with all details',
+      icon: '📥'
+    },
+    {
+      number: 2,
+      title: 'Join Community Group',
+      desc: 'Connect with fellow travelers on WhatsApp',
+      icon: '👥'
+    },
+    {
+      number: 3,
+      title: 'Pre-Trip Briefing',
+      desc: 'Video call 3 days before your trip',
+      icon: '🎥'
+    },
+    {
+      number: 4,
+      title: 'Pack & Prepare',
+      desc: 'Follow the packing list we sent',
+      icon: '🎒'
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12">
-      <div className="max-w-2xl mx-auto px-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white pb-16 overflow-hidden">
+      {/* Animated Background */}
+      <motion.div className="fixed -top-96 -right-96 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-green-600/20 via-emerald-600/15 to-transparent blur-3xl -z-10"
+        animate={{ y: [0, 60, 0] }}
+        transition={{ duration: 12, repeat: Infinity }} />
+      <motion.div className="fixed -bottom-96 -left-96 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-blue-600/20 via-cyan-500/15 to-transparent blur-3xl -z-10"
+        animate={{ y: [0, -50, 0] }}
+        transition={{ duration: 15, repeat: Infinity }} />
+
+      {/* Confetti Animation */}
+      {confetti.map(c => (
+        <motion.div
+          key={c.id}
+          initial={{ y: -100, x: `${c.left}%`, opacity: 1 }}
+          animate={{ y: window.innerHeight, opacity: 0 }}
+          transition={{ duration: c.duration, delay: c.delay }}
+          className="fixed w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
+        />
+      ))}
+
+      <div className="max-w-2xl mx-auto px-4 relative z-10 pt-8">
         {/* Success Message */}
-        <Card className="p-12 text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-              <FiCheck size={40} className="text-white" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="backdrop-blur-xl bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/30 rounded-3xl p-12 mb-8 text-center shadow-2xl"
+        >
+          {/* Animated Checkmark */}
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
+            className="flex justify-center mb-8"
+          >
+            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <FiCheck size={48} className="text-white" />
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Booking Confirmed! 🎉</h1>
-          <p className="text-gray-600 text-lg mb-2">Your trip booking has been successfully confirmed.</p>
-          <p className="text-gray-500">A confirmation email has been sent to your registered email address.</p>
-        </Card>
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400"
+          >
+            Booking Confirmed! 🎉
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-xl text-slate-300 mb-3"
+          >
+            Your trip booking has been successfully confirmed
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-slate-400"
+          >
+            A confirmation email has been sent to your registered email address
+          </motion.p>
+        </motion.div>
 
-        {/* Booking Details */}
-        <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Booking Details</h2>
+        {/* Booking Details Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 mb-8 shadow-2xl"
+        >
+          <h2 className="text-3xl font-black text-white mb-8">Booking Details</h2>
 
-          <div className="grid grid-cols-2 gap-6 mb-8 pb-8 border-b">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Booking ID</p>
-              <p className="text-lg font-bold text-gray-800">{bookingId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Booking Date</p>
-              <p className="text-lg font-bold text-gray-800">{new Date().toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Trip</p>
-              <p className="text-lg font-bold text-gray-800">{tripId === '1' ? 'Winter Spiti Valley' : 'Leh Ladakh'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Trip Date</p>
-              <p className="text-lg font-bold text-gray-800">{tripId === '1' ? 'Jan 15-22, 2025' : 'Feb 20-26, 2025'}</p>
-            </div>
-          </div>
+          <motion.div
+            variants={{
+              visible: { transition: { staggerChildren: 0.08 } },
+              hidden: {}
+            }}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-2 gap-6 mb-8 pb-8 border-b border-white/10"
+          >
+            {[
+              { label: 'Booking ID', value: bookingId },
+              { label: 'Booking Date', value: new Date().toLocaleDateString() },
+              { label: 'Trip', value: trip.name },
+              { label: 'Trip Date', value: trip.date }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <p className="text-sm text-slate-400 mb-1">{item.label}</p>
+                <p className="text-lg font-bold text-white">{item.value}</p>
+              </motion.div>
+            ))}
+          </motion.div>
 
-          <div className="space-y-3 text-gray-700">
-            <div className="flex items-center">
-              <FiCheck className="text-green-500 mr-3" />
-              <span>Payment received and confirmed</span>
-            </div>
-            <div className="flex items-center">
-              <FiCheck className="text-green-500 mr-3" />
-              <span>Travel insurance activated</span>
-            </div>
-            <div className="flex items-center">
-              <FiCheck className="text-green-500 mr-3" />
-              <span>Trip leader assigned</span>
-            </div>
-            <div className="flex items-center">
-              <FiCheck className="text-green-500 mr-3" />
-              <span>Pre-trip briefing scheduled</span>
-            </div>
-          </div>
-        </Card>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-3"
+          >
+            {[
+              'Payment received and confirmed',
+              'Travel insurance activated (₹4.5L coverage)',
+              'Trip leader assigned',
+              'Pre-trip briefing scheduled'
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + i * 0.08 }}
+                className="flex items-center text-slate-200"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.5 + i * 0.08 }}
+                >
+                  <FiCheck className="text-green-400 mr-3 w-5 h-5" />
+                </motion.div>
+                {item}
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
 
-        {/* Next Steps */}
-        <Card className="p-8 mb-8 bg-blue-50 border-l-4 border-blue-500">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">What's Next?</h2>
+        {/* What's Next */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="backdrop-blur-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-2xl p-8 mb-8 shadow-2xl"
+        >
+          <h2 className="text-3xl font-black text-white mb-8">What's Next?</h2>
 
-          <div className="space-y-4">
-            <div className="flex">
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold flex-shrink-0 mr-4">1</div>
-              <div>
-                <p className="font-bold text-gray-800">Download your booking confirmation</p>
-                <p className="text-sm text-gray-600">Check your email for the PDF with all details</p>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold flex-shrink-0 mr-4">2</div>
-              <div>
-                <p className="font-bold text-gray-800">Join the community group</p>
-                <p className="text-sm text-gray-600">You'll receive a WhatsApp group link to connect with other travelers</p>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold flex-shrink-0 mr-4">3</div>
-              <div>
-                <p className="font-bold text-gray-800">Attend the pre-trip briefing</p>
-                <p className="text-sm text-gray-600">Scheduled 3 days before your trip (video call)</p>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold flex-shrink-0 mr-4">4</div>
-              <div>
-                <p className="font-bold text-gray-800">Pack and prepare!</p>
-                <p className="text-sm text-gray-600">Follow the packing list sent to your email</p>
-              </div>
-            </div>
-          </div>
-        </Card>
+          <motion.div
+            variants={{
+              visible: { transition: { staggerChildren: 0.1 } },
+              hidden: {}
+            }}
+            initial="hidden"
+            animate="visible"
+            className="space-y-4"
+          >
+            {nextSteps.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                whileHover={{ x: 10 }}
+                transition={{ duration: 0.3 }}
+                className="flex gap-4 p-4 backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl hover:border-blue-500/30 hover:bg-white/8 transition-all"
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center font-bold flex-shrink-0 text-slate-900 text-lg">
+                  {step.number}
+                </div>
+                <div>
+                  <p className="font-bold text-white text-lg">{step.title}</p>
+                  <p className="text-sm text-slate-400 mt-1">{step.desc}</p>
+                </div>
+                <div className="ml-auto flex items-center">
+                  <span className="text-2xl">{step.icon}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
 
-        {/* Actions */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <Button fullWidth variant="outline" onClick={() => window.print()}>
-            <FiDownload className="inline mr-2" />
-            Download Confirmation
-          </Button>
-          <Button fullWidth variant="outline" onClick={() => window.open('https://wa.me/', '_blank')}>
-            <FiShare2 className="inline mr-2" />
-            Share with Friends
-          </Button>
-        </div>
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="grid grid-cols-2 gap-4 mb-8"
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              fullWidth
+              onClick={() => window.print()}
+              className="bg-white/10 border border-white/20"
+            >
+              <FiDownload className="inline mr-2" />
+              Download
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              fullWidth
+              onClick={() => {
+                const text = `Just booked ${trip.name}! Booking ID: ${bookingId}`;
+                if (navigator.share) {
+                  navigator.share({ title: 'WravelCommunity', text });
+                } else {
+                  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                }
+              }}
+              className="bg-white/10 border border-white/20"
+            >
+              <FiShare2 className="inline mr-2" />
+              Share
+            </Button>
+          </motion.div>
+        </motion.div>
 
-        {/* Navigation */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <Button fullWidth variant="secondary" onClick={() => navigate('/profile')}>
-            View My Bookings
-          </Button>
-          <Button fullWidth onClick={() => navigate('/trips')}>
-            Explore More Trips
-          </Button>
-        </div>
+        {/* Navigation Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-2 gap-4 mb-8"
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              fullWidth
+              onClick={() => navigate('/profile')}
+              className="bg-white/10 border border-white/20"
+            >
+              My Bookings
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              fullWidth
+              onClick={() => navigate('/trips')}
+              className="bg-gradient-to-r from-purple-500 to-pink-500"
+            >
+              More Trips <FiArrowRight className="inline ml-2" size={18} />
+            </Button>
+          </motion.div>
+        </motion.div>
 
-        {/* Help Section */}
-        <Card className="p-6 mt-8 bg-gray-50 text-center">
-          <p className="text-gray-600 mb-4">Need help? Contact us anytime</p>
+        {/* Support Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl"
+        >
+          <p className="text-slate-300 text-center mb-6">Need help? We're always here</p>
           <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-            <a href="tel:+919797972175" className="text-orange-500 font-bold hover:underline">
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              href="tel:+919797972175"
+              className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-bold transition"
+            >
+              <FiPhone size={18} />
               +91 97 97 97 21 75
-            </a>
-            <span className="text-gray-300 hidden md:block">|</span>
-            <a href="mailto:support@wravelcommunity.com" className="text-orange-500 font-bold hover:underline">
+            </motion.a>
+            <div className="w-0.5 h-6 bg-white/20 hidden md:block" />
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              href="mailto:support@wravelcommunity.com"
+              className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-bold transition"
+            >
+              <FiMail size={18} />
               support@wravelcommunity.com
-            </a>
+            </motion.a>
           </div>
-        </Card>
+        </motion.div>
       </div>
     </div>
   );
