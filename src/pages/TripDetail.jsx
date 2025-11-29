@@ -223,7 +223,7 @@ function TripDetail() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white overflow-x-hidden">
       {/* Animated Background Orbs */}
       <motion.div
         className="fixed -top-96 -right-96 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-purple-600/20 via-indigo-600/15 to-transparent blur-3xl -z-10"
@@ -272,11 +272,11 @@ function TripDetail() {
               >
                 {trip.difficulty} • {trip.duration} Days
               </motion.div>
-              
+
               <h1 className="text-5xl md:text-7xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-pink-200">
                 {trip.name}
               </h1>
-              
+
               <div className="flex flex-wrap items-center gap-6 text-slate-300">
                 <div className="flex items-center gap-2">
                   <FiMapPin className="text-purple-400" size={20} />
@@ -364,11 +364,10 @@ function TripDetail() {
                       onClick={() => setActiveTab(tab.key)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all ${
-                        activeTab === tab.key
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5'
-                      }`}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === tab.key
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        }`}
                     >
                       <Icon size={18} />
                       <span className="hidden sm:inline">{tab.label}</span>
@@ -395,11 +394,10 @@ function TripDetail() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div className="p-4 bg-white/5 rounded-lg">
                         <strong className="text-purple-400">Difficulty:</strong>
-                        <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold ${
-                          trip.difficulty === 'Easy' ? 'bg-green-500/20 text-green-300'
+                        <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold ${trip.difficulty === 'Easy' ? 'bg-green-500/20 text-green-300'
                           : trip.difficulty?.includes('Moderate') ? 'bg-yellow-500/20 text-yellow-300'
-                          : 'bg-red-500/20 text-red-300'
-                        }`}>
+                            : 'bg-red-500/20 text-red-300'
+                          }`}>
                           {trip.difficulty}
                         </span>
                       </div>
@@ -578,12 +576,7 @@ function TripDetail() {
           </div>
 
           {/* Right Sidebar - Booking Card */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="lg:col-span-1"
-          >
+          <div className="lg:col-span-1 relative z-30">
             <div className="sticky top-24">
               <Card variant="elevated" className="p-6 border-2 border-purple-500/30">
                 <div className="mb-6">
@@ -657,7 +650,23 @@ function TripDetail() {
                 </div>
               </Card>
             </div>
-          </motion.div>
+          </div>
+        </div>
+      </div>
+      {/* Mobile Booking Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-900/90 backdrop-blur-xl border-t border-white/10 lg:hidden z-40">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div>
+            <p className="text-slate-400 text-xs">Price per person</p>
+            <p className="text-2xl font-bold text-white">₹{trip.price.toLocaleString()}</p>
+          </div>
+          <Button
+            size="md"
+            onClick={() => user ? navigate(`/booking/${trip.id}`) : navigate('/login')}
+            className="px-8"
+          >
+            {user ? 'Book Now' : 'Login to Book'}
+          </Button>
         </div>
       </div>
     </div>

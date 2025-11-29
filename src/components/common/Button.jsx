@@ -9,6 +9,7 @@ function Button({
   disabled = false,
   isLoading = false,
   icon = null,
+  className = '',
   ...props
 }) {
   const baseClasses = 'font-bold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group';
@@ -16,19 +17,19 @@ function Button({
   const variants = {
     // Primary - Gradient
     primary: 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white hover:shadow-lg hover:shadow-purple-500/50 active:scale-95',
-    
+
     // Secondary - Subtle
     secondary: 'bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:border-white/30 hover:shadow-lg',
-    
+
     // Outline - Border
     outline: 'border-2 border-purple-500 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 hover:shadow-lg hover:shadow-purple-500/30',
-    
+
     // Danger - Red
     danger: 'bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20',
-    
+
     // Success - Green
     success: 'bg-green-500/20 border border-green-500/30 text-green-300 hover:bg-green-500/30 hover:border-green-500/50 hover:shadow-lg hover:shadow-green-500/20',
-    
+
     // Ghost - Transparent
     ghost: 'text-slate-300 hover:text-white hover:bg-white/10 active:scale-95',
   };
@@ -41,7 +42,7 @@ function Button({
     xl: 'px-10 py-4 text-xl',
   };
 
-  const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${fullWidth ? 'w-full' : ''}`;
+  const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${fullWidth ? 'w-full' : ''} ${className}`;
 
   return (
     <motion.button
