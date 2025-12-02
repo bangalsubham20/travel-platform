@@ -7,7 +7,7 @@ import { adminAccounts, ADMIN_ROLES } from '../../config/adminConfig';
 
 function AdminRoute({ children, requiredRole = 'admin' }) {
   const { user, loading } = useAuth();
-  const location = useLocation();
+  const location = useLocation()``;
 
   // Check loading state
   if (loading) {

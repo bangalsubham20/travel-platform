@@ -45,8 +45,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Poppins', 'Inter', ...defaultTheme.fontFamily.sans],
-        display: ['Montserrat', ...defaultTheme.fontFamily.sans],
+        sans: ['"Lobster Two"', 'cursive', ...defaultTheme.fontFamily.sans],
+        display: ['"Permanent Marker"', 'cursive', ...defaultTheme.fontFamily.sans],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
