@@ -1,8 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView, animate, useMotionValue } from 'framer-motion';
 import SearchBar from '../components/home/SearchBar';
 import { FiArrowRight, FiCheck, FiStar, FiTrendingUp, FiUsers, FiMapPin, FiCalendar, FiActivity } from 'react-icons/fi';
+
+import { useRef } from 'react';
+
+const StatItem = ({ stat, index }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+
+  useEffect(() => {
+    if (isInView) {
+      const numericValue = parseInt(stat.number.replace(/\D/g, '')) || 0;
+      animate(count, numericValue, { duration: 2.5, ease: "easeOut" });
+    }
+  }, [isInView, stat.number, count]);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.8, delay: index * 0.15, type: "spring", bounce: 0.4 }}
+      whileHover={{ y: -10, scale: 1.05, backgroundColor: "rgba(20, 184, 166, 0.1)" }}
+      className="relative p-8 rounded-3xl border border-white/5 bg-white/5 backdrop-blur-sm group cursor-pointer transition-colors duration-300 hover:border-cyan-500/30 hover:shadow-[0_0_30px_rgba(0,229,255,0.15)]"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
+
+      <div className="relative z-10">
+        <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 text-cyan-400 mb-6 border border-cyan-500/20 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-lg shadow-cyan-900/20">
+          <stat.icon size={28} />
+        </div>
+
+        <h3 className="text-5xl md:text-6xl font-black text-white mb-2 flex justify-center items-baseline tracking-tight">
+          <motion.span>{rounded}</motion.span>
+          <span className="text-cyan-500 ml-1 text-3xl md:text-4xl">{stat.number.replace(/\d/g, '')}</span>
+        </h3>
+
+        <p className="text-grey-400 font-medium uppercase tracking-widest text-xs group-hover:text-cyan-300 transition-colors">
+          {stat.label}
+        </p>
+      </div>
+    </motion.div>
+  );
+};
 
 function Home() {
   const navigate = useNavigate();
@@ -253,8 +297,8 @@ function Home() {
                 onClick={() => setActiveCategory(cat.id)}
                 onHoverStart={() => setActiveCategory(cat.id)}
                 className={`relative rounded-3xl overflow-hidden cursor-pointer ${activeCategory === cat.id
-                    ? 'lg:flex-[3] flex-[3] ring-2 ring-cyan-500/50 shadow-[0_0_30px_rgba(0,229,255,0.2)]'
-                    : 'lg:flex-[0.5] flex-[1] grayscale hover:grayscale-0'
+                  ? 'lg:flex-[3] flex-[3] ring-2 ring-cyan-500/50 shadow-[0_0_30px_rgba(0,229,255,0.2)]'
+                  : 'lg:flex-[0.5] flex-[1] grayscale hover:grayscale-0'
                   }`}
               >
                 {/* Background Image */}
@@ -310,30 +354,17 @@ function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-32 px-4 relative overflow-hidden">
+      <section className="py-32 px-4 bg-teal-900 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
             {[
               { number: '50K+', label: 'Explorers', icon: FiUsers },
               { number: '500+', label: 'Expeditions', icon: FiMapPin },
               { number: '10K+', label: 'Reviews', icon: FiStar },
               { number: '100%', label: 'Adventure', icon: FiTrendingUp },
             ].map((stat, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="inline-flex p-4 rounded-full bg-cyan-500/10 text-cyan-400 mb-4 border border-cyan-500/20">
-                  <stat.icon size={24} />
-                </div>
-                <h3 className="text-4xl md:text-5xl font-black text-white mb-2">{stat.number}</h3>
-                <p className="text-grey-400 uppercase tracking-widest text-sm">{stat.label}</p>
-              </motion.div>
+              <StatItem key={idx} stat={stat} index={idx} />
             ))}
           </div>
         </div>
