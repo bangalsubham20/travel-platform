@@ -152,6 +152,32 @@ function Home() {
             alt="Hero Background"
             className="w-full h-full object-cover scale-110"
           />
+
+          {/* Hero Floating Particles */}
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-cyan-400/30 blur-sm z-10"
+              style={{
+                width: Math.random() * 4 + 2,
+                height: Math.random() * 4 + 2,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -100, 0],
+                x: [0, Math.random() * 50 - 25, 0],
+                opacity: [0, 0.8, 0],
+                scale: [0, 1.5, 0],
+              }}
+              transition={{
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: Math.random() * 5,
+              }}
+            />
+          ))}
         </motion.div>
 
         {/* Hero Content */}
