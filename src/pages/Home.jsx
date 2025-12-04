@@ -371,36 +371,77 @@ function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 px-4 relative overflow-hidden">
+      <section className="py-32 px-4 bg-teal-900 relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <motion.img
+            initial={{ scale: 1 }}
+            whileInView={{ scale: 1.1 }}
+            transition={{ duration: 10, ease: "linear" }}
             src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6?q=80&w=2066&auto=format&fit=crop"
             alt="CTA Background"
             className="w-full h-full object-cover opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-teal-900 via-teal-900/80 to-transparent" />
+
+          {/* Floating Particles */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-cyan-500/20 blur-xl"
+              style={{
+                width: Math.random() * 200 + 50,
+                height: Math.random() * 200 + 50,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -50, 0],
+                x: [0, 30, 0],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: Math.random() * 5 + 5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
         </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-5xl md:text-7xl font-display font-black text-white mb-8">
-            The Wild is <span className="text-cyan-400">Calling</span>
-          </h2>
-          <p className="text-xl text-grey-300 mb-12 max-w-2xl mx-auto">
-            Don't let another adventure pass you by. Join our community today and start writing your own story.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-5xl md:text-7xl font-display font-black text-white mb-8">
+              The Wild is <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 animate-pulse-slow">Calling</span>
+            </h2>
+            <p className="text-xl text-grey-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+              Don't let another adventure pass you by. Join our community today and start writing your own story.
+            </p>
+          </motion.div>
+
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button
+            <motion.button
               onClick={() => navigate('/register')}
-              className="px-10 py-4 bg-cyan-500 text-teal-900 font-bold text-lg rounded-full hover:bg-cyan-400 hover:scale-105 transition-all shadow-[0_0_30px_rgba(0,229,255,0.3)]"
+              whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(0,229,255,0.4)" }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-4 bg-cyan-500 text-teal-900 font-bold text-lg rounded-full transition-all relative overflow-hidden group"
             >
-              Start Your Journey
-            </button>
-            <button
+              <span className="relative z-10">Start Your Journey</span>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </motion.button>
+
+            <motion.button
               onClick={() => navigate('/trips')}
-              className="px-10 py-4 bg-transparent border border-white/30 text-white font-bold text-lg rounded-full hover:bg-white/10 hover:border-white/50 transition-all"
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-4 bg-transparent border border-white/30 text-white font-bold text-lg rounded-full transition-all backdrop-blur-sm"
             >
               Browse Trips
-            </button>
+            </motion.button>
           </div>
         </div>
       </section>
