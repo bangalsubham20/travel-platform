@@ -66,11 +66,15 @@ function AdminDashboard() {
   const [showModal, setShowModal] = useState(null); // 'createOffer', 'editTrip', etc.
 
   // Forms
-  const [tripForm, setTripForm] = useState({
-    name: '', destination: '', price: '', duration: '', startDate: '',
+  const initialTripForm = {
+    name: '', destination: '', price: '', duration: '', startDate: '', endDate: '',
     status: 'active', groupSize: '', difficulty: 'Moderate',
-    description: '', image: ''
-  });
+    description: '', image: '', latitude: '', longitude: '',
+    season: '', bestSeason: '', altitude: '',
+    highlights: '', itinerary: '', inclusions: '', exclusions: ''
+  };
+
+  const [tripForm, setTripForm] = useState(initialTripForm);
 
   const [offerForm, setOfferForm] = useState({
     code: '', discount: '', type: 'PERCENTAGE', minAmount: '', validUntil: '', usageLimit: ''
@@ -114,6 +118,59 @@ function AdminDashboard() {
       toast.error('Failed to load dashboard data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEditTrip = (trip) => {
+    setTripForm({
+      ...trip,
+      startDate: trip.startDate ? trip.startDate.split('T')[0] : '',
+      endDate: trip.endDate ? trip.endDate.split('T')[0] : '',
+      highlights: trip.highlights || '',
+      itinerary: trip.itinerary || '',
+      inclusions: trip.inclusions || '',
+      exclusions: trip.exclusions || '',
+      category: trip.category || '' // field might be missing in form but good to have
+    });
+    setShowModal('editTrip');
+  };
+
+  const handleSaveTrip = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { ...tripForm };
+      // Ensure numeric values
+      payload.price = parseFloat(payload.price);
+      payload.duration = parseInt(payload.duration);
+      payload.groupSize = parseInt(payload.groupSize);
+      payload.latitude = payload.latitude ? parseFloat(payload.latitude) : null;
+      payload.longitude = payload.longitude ? parseFloat(payload.longitude) : null;
+      payload.availableSeats = parseInt(payload.groupSize); // Sync seats with group size for now
+
+      if (showModal === 'createTrip') {
+        await tripService.createTrip(payload);
+        toast.success('Trip created successfully');
+      } else {
+        await tripService.updateTrip(payload.id, payload);
+        toast.success('Trip updated successfully');
+      }
+      setShowModal(null);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save trip');
+    }
+  };
+
+  const handleDeleteTrip = async (id) => {
+    if (window.confirm('Are you sure you want to delete this trip?')) {
+      try {
+        await tripService.deleteTrip(id);
+        toast.success('Trip deleted');
+        fetchData();
+      } catch (err) {
+        toast.error('Failed to delete trip');
+      }
     }
   };
 
@@ -340,7 +397,7 @@ function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-teal-900/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
         <h2 className="text-2xl font-bold text-white">Manage Trips</h2>
-        <Button className="shadow-lg shadow-cyan-500/20"><FiPlus className="mr-2" /> Add Trip</Button>
+        <Button onClick={() => { setTripForm(initialTripForm); setShowModal('createTrip'); }} className="shadow-lg shadow-cyan-500/20"><FiPlus className="mr-2" /> Add Trip</Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {trips.map(trip => (
@@ -368,8 +425,8 @@ function AdminDashboard() {
               </div>
 
               <div className="flex gap-2">
-                <Button size="sm" variant="secondary" fullWidth className="hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30"><FiEdit2 /> Edit</Button>
-                <Button size="sm" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"><FiTrash2 /></Button>
+                <Button size="sm" variant="secondary" fullWidth className="hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30" onClick={() => handleEditTrip(trip)}><FiEdit2 /> Edit</Button>
+                <Button size="sm" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20" onClick={() => handleDeleteTrip(trip.id)}><FiTrash2 /></Button>
               </div>
             </div>
           </Card>
@@ -625,6 +682,111 @@ function AdminDashboard() {
                   Create Offer
                 </Button>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Create/Edit Trip Modal */}
+        {(showModal === 'createTrip' || showModal === 'editTrip') && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              className="bg-teal-950 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative flex flex-col max-h-[90vh]"
+            >
+              <div className="p-6 border-b border-white/10 flex justify-between items-center bg-teal-900/40">
+                <h3 className="text-2xl font-bold text-white">
+                  {showModal === 'createTrip' ? 'Create New Trip' : 'Edit Trip'}
+                </h3>
+                <button onClick={() => setShowModal(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                  <FiX className="text-grey-400 hover:text-white" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto p-8 custom-scrollbar">
+                <form id="tripForm" onSubmit={handleSaveTrip} className="space-y-8">
+                  {/* Basic Info */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-bold text-cyan-400 border-b border-white/10 pb-2">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Trip Name</label>
+                        <input type="text" value={tripForm.name} onChange={e => setTripForm({ ...tripForm, name: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Destination</label>
+                        <input type="text" value={tripForm.destination} onChange={e => setTripForm({ ...tripForm, destination: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Price (₹)</label>
+                        <input type="number" value={tripForm.price} onChange={e => setTripForm({ ...tripForm, price: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Duration (Days)</label>
+                        <input type="number" value={tripForm.duration} onChange={e => setTripForm({ ...tripForm, duration: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Start Date</label>
+                        <input type="date" value={tripForm.startDate} onChange={e => setTripForm({ ...tripForm, startDate: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">End Date</label>
+                        <input type="date" value={tripForm.endDate} onChange={e => setTripForm({ ...tripForm, endDate: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location & Details */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-bold text-cyan-400 border-b border-white/10 pb-2">Location & Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Latitude</label>
+                        <input type="number" step="any" value={tripForm.latitude} onChange={e => setTripForm({ ...tripForm, latitude: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" placeholder="e.g. 31.1048" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Longitude</label>
+                        <input type="number" step="any" value={tripForm.longitude} onChange={e => setTripForm({ ...tripForm, longitude: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" placeholder="e.g. 77.1734" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Difficulty</label>
+                        <select value={tripForm.difficulty} onChange={e => setTripForm({ ...tripForm, difficulty: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none">
+                          <option value="Easy">Easy</option>
+                          <option value="Moderate">Moderate</option>
+                          <option value="Hard">Hard</option>
+                          <option value="Expert">Expert</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Group Size</label>
+                        <input type="number" value={tripForm.groupSize} onChange={e => setTripForm({ ...tripForm, groupSize: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description & Media */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-bold text-cyan-400 border-b border-white/10 pb-2">Description & Media</h4>
+                    <div>
+                      <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Description</label>
+                      <textarea rows="4" value={tripForm.description} onChange={e => setTripForm({ ...tripForm, description: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" required />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Image URL</label>
+                      <input type="text" value={tripForm.image} onChange={e => setTripForm({ ...tripForm, image: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-grey-400 uppercase tracking-wider mb-2">Highlights (newline separated)</label>
+                      <textarea rows="3" value={tripForm.highlights} onChange={e => setTripForm({ ...tripForm, highlights: e.target.value })} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-400 outline-none" />
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <div className="p-6 border-t border-white/10 bg-teal-900/40 flex justify-end gap-4">
+                <Button variant="secondary" onClick={() => setShowModal(null)}>Cancel</Button>
+                <Button type="submit" form="tripForm">Save Trip</Button>
+              </div>
             </motion.div>
           </div>
         )}

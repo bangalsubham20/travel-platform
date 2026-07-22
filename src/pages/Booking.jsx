@@ -9,7 +9,6 @@ import Card from '../components/common/Card';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import tripService from '../services/tripService';
 import bookingService from '../services/bookingService';
-
 import offerService from '../services/offerService';
 
 function Booking() {

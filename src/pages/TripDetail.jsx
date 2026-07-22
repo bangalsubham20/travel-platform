@@ -9,6 +9,7 @@ import Card from '../components/common/Card';
 import tripService from '../services/tripService';
 import MapComponent from '../components/common/MapComponent';
 
+
 function TripDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
