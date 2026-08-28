@@ -22,11 +22,14 @@ export default function Login() {
       await login(form.email, form.password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Login failed');
+      const msg = typeof err === 'string' ? err : (err.message || 'Login failed');
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
+
+  const isUnverified = error && (error.toLowerCase().includes('verify') || error.toLowerCase().includes('unverified') || error.toLowerCase().includes('pending'));
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-teal-900 relative overflow-hidden font-sans selection:bg-cyan-500 selection:text-teal-900">
@@ -63,12 +66,23 @@ export default function Login() {
               exit={{ opacity: 0, y: -8 }}
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2"
+              className="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-6 text-sm flex flex-col gap-2"
             >
-              <span>⚠️</span> {error}
+              <div className="flex items-center gap-2">
+                <span>⚠️</span> {error}
+              </div>
+              {isUnverified && (
+                <Link
+                  to="/register"
+                  className="mt-1 inline-block text-cyan-400 underline hover:text-cyan-300 font-semibold text-xs text-center"
+                >
+                  Click here to register & verify your OTP
+                </Link>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
+
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>

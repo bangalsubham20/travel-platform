@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // Register new user
+  // Register new user (sends OTP email to pending user)
   const register = async (fullName, email, password, phone) => {
     try {
       setError(null);
@@ -36,15 +36,33 @@ export function AuthProvider({ children }) {
         phone,
       });
 
+      return response;
+    } catch (err) {
+      const errorMsg = typeof err === 'string' ? err : (err.message || 'Registration failed');
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
+  // Verify email OTP and complete registration
+  const verifyEmail = async (email, otp) => {
+    try {
+      setError(null);
+      const response = await apiClient.post('/auth/verify-email', null, {
+        params: { email, otp }
+      });
+
       const { token, user: userData } = response;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      if (token && userData) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+      }
 
-      return userData;
+      return response;
     } catch (err) {
-      const errorMsg = err.message || 'Registration failed';
+      const errorMsg = typeof err === 'string' ? err : (err.message || 'OTP Verification failed');
       setError(errorMsg);
       throw err;
     }
@@ -67,7 +85,7 @@ export function AuthProvider({ children }) {
 
       return userData;
     } catch (err) {
-      const errorMsg = err.message || 'Login failed';
+      const errorMsg = typeof err === 'string' ? err : (err.message || 'Login failed');
       setError(errorMsg);
       throw err;
     }
@@ -92,7 +110,7 @@ export function AuthProvider({ children }) {
 
       return response;
     } catch (err) {
-      const errorMsg = err.message || 'Profile update failed';
+      const errorMsg = typeof err === 'string' ? err : (err.message || 'Profile update failed');
       setError(errorMsg);
       throw err;
     }
@@ -113,6 +131,7 @@ export function AuthProvider({ children }) {
         error,
         login,
         register,
+        verifyEmail,
         logout,
         updateProfile,
         loginWithData
@@ -122,3 +141,4 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
