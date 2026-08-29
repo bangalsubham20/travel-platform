@@ -203,7 +203,7 @@ function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="w-full max-w-3xl"
+            className="w-full max-w-4xl"
           >
             <SearchBar />
           </motion.div>
