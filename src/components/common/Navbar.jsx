@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import { FiMenu, FiX, FiUser, FiLogOut, FiSettings, FiChevronDown, FiHome, FiMapPin, FiUsers } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut, FiSettings, FiChevronDown, FiHome, FiMapPin, FiUsers, FiCompass } from 'react-icons/fi';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +44,7 @@ function Navbar() {
   const navItems = [
     { label: 'Home', path: '/', icon: FiHome },
     { label: 'Trips', path: '/trips', icon: FiMapPin },
+    { label: 'Trekking', path: '/trekking', icon: FiCompass },
     { label: 'Community', path: '/community', icon: FiUsers }
   ];
 

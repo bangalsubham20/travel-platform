@@ -11,6 +11,7 @@ import './App.css';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
+const Trekking = lazy(() => import('./pages/Trekking'));
 const Trips = lazy(() => import('./pages/Trips'));
 const TripDetail = lazy(() => import('./pages/TripDetail'));
 const About = lazy(() => import('./pages/About'));
@@ -58,9 +59,10 @@ function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/faq" element={<FAQ />} />
 
-                {/* Trips */}
+                {/* Trips & Trekking */}
                 <Route path="/trips" element={<Trips />} />
                 <Route path="/trips/:id" element={<TripDetail />} />
+                <Route path="/trekking" element={<Trekking />} />
 
                 {/* Community */}
                 <Route path="/community" element={<Community />} />
