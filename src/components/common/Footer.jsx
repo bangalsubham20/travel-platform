@@ -31,7 +31,7 @@ function Footer() {
   ];
 
   return (
-    <footer className="relative font-sans text-grey-400 overflow-hidden bg-teal-900 border-t border-white/5">
+    <footer className="relative font-sans text-gray-400 overflow-hidden bg-slate-950 border-t border-white/10">
 
       {/* Abstract Background Design */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">

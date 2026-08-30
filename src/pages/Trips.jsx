@@ -75,9 +75,7 @@ function Trips() {
   if (tripsLoading) return <LoadingSpinner />;
 
   return (
-    <div className="min-h-screen bg-teal-900 text-white pb-24 font-sans selection:bg-cyan-500 selection:text-teal-900 pt-24 px-6 md:px-12 bg-fixed" style={{
-      backgroundImage: `radial-gradient(at 0% 0%, rgba(0, 229, 255, 0.1) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.1) 0px, transparent 50%)`
-    }}>
+    <div className="min-h-screen bg-slate-950 text-white pb-24 font-sans selection:bg-cyan-500 selection:text-slate-950 pt-24 px-6 md:px-12 bg-fixed">
 
       {/* Header Section */}
       <div className="max-w-[1600px] mx-auto mb-12">

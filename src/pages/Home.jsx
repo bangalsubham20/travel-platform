@@ -137,10 +137,10 @@ function Home() {
   ];
 
   return (
-    <div className="text-white overflow-hidden font-sans selection:bg-cyan-500 selection:text-teal-900">
+    <div className="text-white overflow-hidden font-sans selection:bg-cyan-500 selection:text-slate-950 bg-slate-950">
 
       {/* Hero Section */}
-      <div className="relative h-screen w-full overflow-hidden">
+      <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col justify-center pt-16">
         {/* Background Image with Parallax */}
         <motion.div
           style={{ y: y1 }}
@@ -226,14 +226,14 @@ function Home() {
       </div>
 
       {/* Featured Trips Section */}
-      <section className="py-32 px-4 relative z-10 bg-teal-900">
+      <section className="py-32 px-4 relative z-10 bg-slate-950 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
             <div>
               <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-4">
                 Curated <span className="text-cyan-400">Expeditions</span>
               </h2>
-              <p className="text-grey-400 text-lg max-w-xl">
+              <p className="text-gray-400 text-lg max-w-xl">
                 Handpicked adventures designed to challenge your limits and soothe your soul.
               </p>
             </div>
@@ -255,7 +255,7 @@ function Home() {
                 transition={{ delay: idx * 0.2 }}
                 viewport={{ once: true }}
                 onClick={() => navigate(`/trips/${trip.id}`)}
-                className="group relative h-[500px] rounded-3xl overflow-hidden cursor-pointer"
+                className="group relative h-[500px] rounded-3xl overflow-hidden cursor-pointer shadow-2xl border border-white/10 hover:border-cyan-500/40 transition-all duration-300"
               >
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-500 z-10" />
                 <img
@@ -263,7 +263,7 @@ function Home() {
                   alt={trip.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-20" />
 
                 <div className="absolute top-6 left-6 z-30">
                   <span className="px-4 py-2 bg-cyan-500/20 backdrop-blur-md border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider rounded-full">
@@ -276,21 +276,21 @@ function Home() {
                     <h3 className="text-2xl font-bold text-white leading-tight group-hover:text-cyan-400 transition-colors">
                       {trip.title}
                     </h3>
-                    <div className="flex items-center gap-1 text-yellow-400 font-bold bg-black/30 px-2 py-1 rounded-lg backdrop-blur-sm">
+                    <div className="flex items-center gap-1 text-amber-400 font-bold bg-black/40 px-2.5 py-1 rounded-lg backdrop-blur-sm border border-white/10">
                       <FiStar size={14} fill="currentColor" /> {trip.rating}
                     </div>
                   </div>
 
-                  <p className="text-grey-400 text-sm mb-6 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                  <p className="text-gray-300 text-sm mb-6 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
                     {trip.desc}
                   </p>
 
                   <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                    <div className="flex gap-4 text-xs font-medium text-grey-300 uppercase tracking-wide">
-                      <span className="flex items-center gap-1"><FiCalendar className="text-cyan-500" /> {trip.duration}</span>
-                      <span className="flex items-center gap-1"><FiActivity className="text-cyan-500" /> {trip.difficulty}</span>
+                    <div className="flex gap-4 text-xs font-medium text-gray-300 uppercase tracking-wide">
+                      <span className="flex items-center gap-1"><FiCalendar className="text-cyan-400" /> {trip.duration}</span>
+                      <span className="flex items-center gap-1"><FiActivity className="text-cyan-400" /> {trip.difficulty}</span>
                     </div>
-                    <span className="text-xl font-bold text-white">{trip.price}</span>
+                    <span className="text-xl font-bold text-white font-mono">{trip.price}</span>
                   </div>
                 </div>
               </motion.div>
@@ -300,7 +300,7 @@ function Home() {
       </section>
 
       {/* Categories Section - Cinematic Expandable Gallery */}
-      <section className="py-32 bg-teal-900 relative overflow-hidden">
+      <section className="py-32 bg-slate-950 relative overflow-hidden border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -311,7 +311,7 @@ function Home() {
             <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-4">
               Choose Your <span className="text-cyan-400">Adventure</span>
             </h2>
-            <p className="text-xl text-grey-400">Explore the world your way</p>
+            <p className="text-xl text-gray-400">Explore the world your way</p>
           </motion.div>
 
           <div className="flex flex-col lg:flex-row gap-4 h-auto lg:h-[600px] w-full">
@@ -322,7 +322,7 @@ function Home() {
                 transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 onClick={() => setActiveCategory(cat.id)}
                 onHoverStart={() => setActiveCategory(cat.id)}
-                className={`relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out ${activeCategory === cat.id
+                className={`relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out border border-white/10 ${activeCategory === cat.id
                   ? 'h-[400px] lg:h-auto lg:flex-[3] flex-none ring-2 ring-cyan-500/50 shadow-[0_0_30px_rgba(0,229,255,0.2)]'
                   : 'h-[100px] lg:h-auto lg:flex-[0.5] flex-none grayscale hover:grayscale-0'
                   }`}
@@ -365,8 +365,14 @@ function Home() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.3 }}
                       >
-                        <p className="text-grey-300 mb-4 text-lg">{cat.desc}</p>
-                        <button className="px-6 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-cyan-400 text-sm font-bold uppercase tracking-wider hover:bg-cyan-500 hover:text-teal-900 transition-all shadow-[0_0_15px_rgba(0,229,255,0.3)]">
+                        <p className="text-gray-300 mb-4 text-lg">{cat.desc}</p>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/trips');
+                          }}
+                          className="px-6 py-2 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-cyan-400 text-sm font-bold uppercase tracking-wider hover:bg-cyan-500 hover:text-slate-950 transition-all shadow-[0_0_15px_rgba(0,229,255,0.3)] cursor-pointer"
+                        >
                           Explore
                         </button>
                       </motion.div>
@@ -380,7 +386,7 @@ function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-32 px-4 bg-teal-900 relative overflow-hidden">
+      <section className="py-32 px-4 bg-slate-950 relative overflow-hidden border-t border-white/5">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
