@@ -1,84 +1,74 @@
-# SundaySoul 🏔️
+# 🏔️ SundaySoul — Elevated Travel & Expedition Web Platform
 
-**SundaySoul** is a modern social travel community platform built with React, Vite, and Tailwind CSS. It connects travelers, allows them to book curated expeditions, share their stories, and join a vibrant community of explorers.
+![React](https://img.shields.io/badge/React-18-blue.svg?style=for-the-badge&logo=react)
+![Vite](https://img.shields.io/badge/Vite-4.5-purple.svg?style=for-the-badge&logo=vite)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3-cyan.svg?style=for-the-badge&logo=tailwindcss)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-10-pink.svg?style=for-the-badge&logo=framer)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=for-the-badge&logo=docker)
 
-## 🚀 Features
+> **SundaySoul Frontend** is an immersive social travel and expedition booking web application built with React, Vite, Tailwind CSS, and Framer Motion spring physics.
 
--   **Home Page**: Immersive landing page with smooth parallax effects and featured trips.
--   **Trip Booking**: Browse curated trips, view details, and book your next adventure.
--   **Community**: Social feed to share travel stories, photos, and find travel buddies.
--   **User Authentication**: Secure Login and Registration flow (Mock backend).
--   **Admin Dashboard**: comprehensive admin panel for managing trips, bookings, and users.
--   **Responsive Design**: Fully responsive UI optimized for all devices.
--   **Animations**: Smooth transitions and micro-interactions using Framer Motion.
--   **Dark/Light Mode**: Themed UI with a focus on immersive visuals.
+---
 
-## � Gallery
+## 🎨 Design Read & Highlights
 
-![Hero](https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2074&auto=format&fit=crop)
+- **✨ Dark Glassmorphic Aesthetic**: Sleek glass panels, ambient glow overlays, and curated typography using **Outfit** (Display), **Inter** (Body), and **JetBrains Mono** (Metrics).
+- **🏔️ Trekking & Camping Experience**: Pixel-perfect fluid S-curved mountain mask hero showcase with dynamic trail pins and carousels.
+- **🔍 Multi-Parameter SearchBar**: Instant filtering by Destination, Departure Date, and Traveler count with floating popover menus.
+- **📊 Real-Time Expeditions Catalog**: Connected to Spring Boot REST APIs for dynamic trip filtering and database category counts.
+- **📱 Fully Responsive**: Custom mobile navigation drawer, fluid typography scaling, and smooth touch gestures.
 
-### Featured Expeditions
+---
 
-| Mystic Himalayas | Coastal Odyssey | Spiti Valley |
-| :---: | :---: | :---: |
-| ![Himalayas](public/images/expeditions/himalayas-1.png) | ![Coastal](https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=400&auto=format&fit=crop) | ![Spiti](https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=400&auto=format&fit=crop) |
+## 🛠️ Tech Stack
 
-## �🛠️ Tech Stack
-
--   **Frontend**: React (Vite)
--   **Styling**: Tailwind CSS, Vanilla CSS
--   **Animations**: Framer Motion, GSAP (if used), Lenis (Smooth Scroll)
--   **Routing**: React Router DOM
--   **Icons**: React Icons (Feather, FontAwesome)
--   **State Management**: Context API (Auth)
-
-## 📦 Installation
-
-This project requires [Node.js](https://nodejs.org/) (v16+) to run.
-
-1.  **Clone the repository** (if not already downloaded):
-    ```bash
-    git clone https://github.com/bangalsubham20/sundaysoul.git
-    cd sundaysoul
-    ```
-
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Start the development server**:
-    ```bash
-    npm run dev
-    ```
-
-4.  **Open in Browser**:
-    Visit `https://www.sundaysoul.in` to view the application.
-
-
-## 📂 Project Structure
-
-```
-sundaysoul/
-├── public/              # Static assets
-├── src/
-│   ├── components/      # Reusable UI components
-│   │   ├── auth/        # Auth-related components (Routes, Forms)
-│   │   ├── common/      # Generic components (Button, Modal, Loader)
-│   │   ├── home/        # Homepage specific components
-│   │   └── ...
-│   ├── config/          # Configuration files (Admin roles, etc.)
-│   ├── context/         # React Context (AuthContext)
-│   ├── hooks/           # Custom React Hooks
-│   ├── pages/           # Page components (Home, Login, Dashboard)
-│   ├── services/        # API services (Mock)
-│   ├── App.jsx          # Main App component with Routes
-│   └── main.jsx         # Entry point
-├── index.html           # HTML entry point
-├── tailwind.config.js   # Tailwind configuration
-└── vite.config.js       # Vite configuration
+```text
+├── UI Library        : React 18
+├── Build Tool        : Vite 4.5
+├── Styling           : Tailwind CSS 3.3
+├── Motion Physics    : Framer Motion 10
+├── Icons             : React Icons (Feather / FontAwesome)
+└── Routing           : React Router DOM 6
 ```
 
 ---
 
-Made with ❤️ by [Subham] | 🇮🇳 India
+## 🚀 Quick Start (Local Setup)
+
+### 1. Prerequisites
+- **Node.js** (v18 or v20)
+- SundaySoul Backend API service running on `http://localhost:8080`
+
+### 2. Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/bangalsubham20/SundaySoul.git
+cd SundaySoul
+
+# Install dependencies
+npm install
+
+# Start Vite local development server
+npm run dev
+```
+
+Visit `http://localhost:5173` in your browser.
+
+---
+
+## 🐳 Docker Deployment
+
+```bash
+# Build production Docker image
+docker build -t sundaysoul-frontend .
+
+# Run container on port 80
+docker run -d -p 80:80 --name sundaysoul-ui sundaysoul-frontend
+```
+
+---
+
+<div align="center">
+  <sub>Crafted with passion for design and exploration by <b>Subham</b> • 🇮🇳 India</sub>
+</div>
